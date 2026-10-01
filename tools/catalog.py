@@ -6,8 +6,9 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
-from validate import NAME, fingerprint, frontmatter, no_links, package_bytes, read_folder, read_zip, require
+from validate import MAX_ZIP, NAME, fingerprint, frontmatter, no_links, package_bytes, read_folder, read_zip, require
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = 'https://github.com/maxpkg-dev/max-ultra-mcp-community-skills'
@@ -36,14 +37,23 @@ def person(value):
 
 def metadata(path, files):
     m = json.loads(no_links(path).read_text(encoding='utf-8'))
-    keys = {'schemaVersion', 'id', 'title', 'version', 'category', 'purpose', 'author', 'submitter', 'reviewer', 'dependencies', 'testedVersions', 'verification', 'terms', 'provenance', 'submission', 'packageSha256'}
+    keys = {'schemaVersion', 'id', 'title', 'version', 'publishedVersion', 'category', 'purpose', 'usage', 'author', 'submitter', 'reviewer', 'dependencies', 'testedVersions', 'verification', 'terms', 'provenance', 'submission', 'packageSha256'}
     require(set(m) == keys and m['schemaVersion'] == 1, 'Unknown/missing metadata fields')
     require(NAME.fullmatch(m['id']) and len(m['id']) <= 64 and m['id'] == path.parent.name, 'Metadata ID mismatch')
     require(frontmatter(files['SKILL.md'])['name'] == m['id'], 'Frontmatter ID mismatch')
     require(re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', m['version']), 'Use stable X.Y.Z version')
+    if m['publishedVersion'] is not None:
+        require(isinstance(m['publishedVersion'], str) and re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', m['publishedVersion']), 'Invalid published version')
+        require(tuple(map(int, m['publishedVersion'].split('.'))) <= tuple(map(int, m['version'].split('.'))), 'Published version exceeds catalog version')
     require(m['category'] in CATEGORIES, 'Unknown category')
     for key in ('title', 'purpose', 'provenance'):
         text(m[key])
+    require(isinstance(m['usage'], dict) and set(m['usage']) == {'steps', 'examples', 'expectedOutput'}, 'Usage needs steps, examples, and expectedOutput')
+    for key in ('steps', 'examples'):
+        require(isinstance(m['usage'][key], list) and 1 <= len(m['usage'][key]) <= 10, 'Usage needs a bounded nonempty list')
+        for value in m['usage'][key]:
+            text(value)
+    text(m['usage']['expectedOutput'])
     person(m['author'])
     for key in ('submitter', 'reviewer'):
         if m[key] is not None:
@@ -95,8 +105,65 @@ def tag_name(m):
     return f"{m['id']}-v{m['version']}"
 
 
+def download_url(m):
+    if m['publishedVersion'] is None:
+        return None
+    published = {**m, 'version': m['publishedVersion']}
+    return f'{REPO}/releases/download/{tag_name(published)}/{asset_name(published)}'
+
+
+def download_link(m):
+    target = download_url(m)
+    return f"[Download ZIP]({target}) (v{m['publishedVersion']})" if target else 'Publication pending'
+
+
+def download_section(m):
+    target = download_url(m)
+    if target is None:
+        return f"Version {m['version']} is awaiting confirmed publication. No download is available yet."
+    result = f"**{download_link(m)}** · [SHA-256]({target}.sha256)"
+    if m['publishedVersion'] != m['version']:
+        result += f"\n\nVersion {m['version']} is awaiting confirmed publication. The download remains on v{m['publishedVersion']}, the latest confirmed release for this skill."
+    return result
+
+
+def public_bytes(address, limit):
+    # Only caller-constructed GitHub endpoints are used; no submitted URLs or credentials.
+    request = Request(address, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'max-ultra-community-catalog'})
+    with urlopen(request, timeout=60) as response:
+        data = response.read(limit + 1)
+    require(len(data) <= limit, 'Published response exceeds size limit')
+    return data
+
+
+def confirm_publication(skill_id, root=ROOT, fetch=public_bytes):
+    """Verify the public current-version ZIP/checksum, then update local catalog files only."""
+    records = load(root)
+    matches = [(m, files) for m, files in records if m['id'] == skill_id]
+    require(len(matches) == 1, 'Unknown skill ID')
+    m, files = matches[0]
+    api = REPO.replace('https://github.com/', 'https://api.github.com/repos/')
+    published = json.loads(fetch(f'{api}/releases/tags/{tag_name(m)}', 1024 * 1024))
+    require(published['tag_name'] == tag_name(m) and not published['draft'] and not published['prerelease'], 'A public stable release is required')
+    names = {asset['name'] for asset in published['assets'] if asset['state'] == 'uploaded'}
+    asset = asset_name(m)
+    require({asset, asset + '.sha256'} <= names, 'ZIP and checksum must both be uploaded')
+    target = download_url({**m, 'publishedVersion': m['version']})
+    expected_hash = hashlib.sha256(package_bytes(files)).hexdigest()
+    require(hashlib.sha256(fetch(target, MAX_ZIP)).hexdigest() == expected_hash, 'Published ZIP differs from reviewed package')
+    checksum = fetch(target + '.sha256', 4096).decode('utf-8').strip()
+    require(checksum == f'{expected_hash}  {asset}', 'Published checksum differs from reviewed package')
+    # All remote checks finish before local metadata or links change.
+    m['publishedVersion'] = m['version']
+    path = root / 'skills' / m['id'] / 'metadata.json'
+    path.write_text(json.dumps(m, indent=2, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
+    generate(root)
+    return target
+
+
 def detail(m, files):
     bullet = lambda values: '\n'.join('- ' + escape(v) for v in values) if values else '- No practical software-version tests recorded.'
+    usage_steps = '\n'.join(f'{i}. {escape(step)}' for i, step in enumerate(m['usage']['steps'], 1))
     return f"""<!-- Generated by tools/catalog.py; edit metadata.json instead. -->
 # {escape(m['title'])}
 
@@ -106,14 +173,20 @@ By **{credit(m['author'])}** · Version **{m['version']}** · {escape(m['categor
 
 ## Download and install
 
-[Find this version in Releases]({REPO}/releases?q={tag_name(m)})
-
-Expected asset: `{asset_name(m)}`. A catalog entry is not proof of a published release.
-If that release is absent, publication is pending; maintainers can build it locally with `python tools/catalog.py build`.
-Download the named ZIP asset, not GitHub's automatic Source code archive.
+{download_section(m)}
 
 In Max Ultra MCP, use **Skills → Custom → Import ZIPs**, then start a new AI chat.
 For updates and duplicate-name handling, see the [installation guide](../INSTALL.md).
+
+## How to use
+
+{usage_steps}
+
+Example requests:
+
+{bullet(m['usage']['examples'])}
+
+Expected output: {escape(m['usage']['expectedOutput'])}
 
 ## Dependencies
 
@@ -159,7 +232,7 @@ def generated(root=ROOT):
     rows = ['| Skill | Author | Category | Purpose | Version | Verification | Download |', '| --- | --- | --- | --- | --- | --- | --- |']
     output = {}
     for m, files in records:
-        rows.append(f"| [{escape(m['title'])}](docs/skills/{m['id']}.md) | {credit(m['author'])} | {escape(m['category'])} | {escape(m['purpose'])} | {m['version']} | {m['verification']['level']} | [Check Releases]({REPO}/releases?q={tag_name(m)}) |")
+        rows.append(f"| [{escape(m['title'])}](docs/skills/{m['id']}.md) | {credit(m['author'])} | {escape(m['category'])} | {escape(m['purpose'])} | {m['version']} | {m['verification']['level']} | {download_link(m)} |")
         output[root / 'docs' / 'skills' / (m['id'] + '.md')] = detail(m, files)
     readme = (root / 'README.md').read_text(encoding='utf-8')
     require(readme.count(BEGIN) == readme.count(END) == 1, 'README catalog markers missing/duplicated')
@@ -231,6 +304,8 @@ def main():
     staging = commands.add_parser('stage')
     staging.add_argument('zip', type=Path)
     staging.add_argument('destination', type=Path)
+    confirmation = commands.add_parser('confirm-publication', help='Verify a public release and update local download links; does not publish or push')
+    confirmation.add_argument('skill_id')
     args = parser.parse_args()
     if args.command == 'validate':
         print(f'Validated {len(load())} skill(s)')
@@ -241,6 +316,8 @@ def main():
         print(json.dumps(build(), indent=2))
     elif args.command == 'stage':
         print('Staged validated content. Review before copying into skills/. Fingerprint: ' + stage(args.zip, args.destination))
+    elif args.command == 'confirm-publication':
+        print('Confirmed download; review and commit the generated catalog changes: ' + confirm_publication(args.skill_id))
     else:
         files = read_folder(args.source) if args.source.is_dir() else read_zip(args.source)
         print(json.dumps({'files': len(files), 'bytes': sum(map(len, files.values())), 'packageSha256': fingerprint(files), **frontmatter(files['SKILL.md'])}, indent=2))

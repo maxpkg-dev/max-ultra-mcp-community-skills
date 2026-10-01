@@ -7,14 +7,25 @@ Architectural render critique, composition, mood design, and production planning
 
 ## Download and install
 
-[Find this version in Releases](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases?q=archviz-master-yuriy-bobak-v1.2.1)
-
-Expected asset: `archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip`. A catalog entry is not proof of a published release.
-If that release is absent, publication is pending; maintainers can build it locally with `python tools/catalog.py build`.
-Download the named ZIP asset, not GitHub's automatic Source code archive.
+**[Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip) (v1.2.1)** · [SHA-256](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip.sha256)
 
 In Max Ultra MCP, use **Skills → Custom → Import ZIPs**, then start a new AI chat.
 For updates and duplicate-name handling, see the [installation guide](../INSTALL.md).
+
+## How to use
+
+1. After importing, start a new AI chat. If you want to select the skill explicitly, ask the assistant to use ArchViz Master by Yuriy Bobak.
+2. For image critique, attach your render and any references. State the intended mood, audience, deliverable, and constraints such as fixed architecture, camera, budget, or deadline. Ask for a prioritized critique; no live Max connection is needed.
+3. For live scene assistance, connect Max Ultra MCP to the intended 3ds Max scene, describe the target objects and installed renderer/plugins, and explicitly state which changes you authorize. Importing the skill does not itself change the scene.
+
+Example requests:
+
+- Use ArchViz Master by Yuriy Bobak to critique this exterior render. The goal is a calm residential presentation. Keep the architecture fixed and prioritize the three most important improvements.
+- Suggest three camera alternatives for this reference: explain focal hierarchy, negative space, and crop. Keep the building dimensions and landscape layout unchanged.
+- Review the mood, lighting, and materials in this interior. Suggest changes for a soft overcast feel while preserving the furniture and color palette; explain how to check the result.
+- Use ArchViz Master with Max Ultra MCP on the connected scene. Inspect the selected camera and propose a framing adjustment. You may adjust that camera only; keep geometry, materials, and render settings unchanged.
+
+Expected output: Prioritized issues with reasons, proposed changes, and concrete verification checks. Image-based suggestions are advice; live changes depend on the connected tools and your authorization. These examples describe intended use, not a claim of tested output quality.
 
 ## Dependencies
 

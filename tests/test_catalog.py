@@ -202,6 +202,83 @@ class CatalogTests(unittest.TestCase):
         self.assertIn('\\|', value)
         self.assertIn('\\[', value)
 
+    def test_download_is_scoped_to_skill_and_confirmed_version(self):
+        m, _ = catalog.load(self.root)[0]
+        m = {**m, 'publishedVersion': '1.2.1', 'version': '1.3.0'}
+        expected = catalog.REPO + '/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip'
+        self.assertEqual(catalog.download_url(m), expected)
+        self.assertIn('Version 1.3.0 is awaiting confirmed publication', catalog.download_section(m))
+        other = {**m, 'id': 'another-skill', 'publishedVersion': '1.0.0'}
+        self.assertIn('/another-skill-v1.0.0/another-skill-1.0.0-', catalog.download_url(other))
+        pending = {**m, 'publishedVersion': None}
+        self.assertIsNone(catalog.download_url(pending))
+        self.assertNotIn('Download ZIP', catalog.download_section(pending))
+        self.assertEqual(catalog.download_link(pending), 'Publication pending')
+
+    def test_publication_confirmation_verifies_assets_before_advancing(self):
+        m, files = catalog.load(self.root)[0]
+        data = v.package_bytes(files)
+        asset = catalog.asset_name(m)
+        expected_hash = hashlib.sha256(data).hexdigest()
+        release_data = {'tag_name': catalog.tag_name(m), 'draft': False, 'prerelease': False, 'assets': [{'name': asset, 'state': 'uploaded'}, {'name': asset + '.sha256', 'state': 'uploaded'}]}
+        def fetch(address, limit):
+            if '/releases/tags/' in address:
+                return json.dumps(release_data).encode()
+            if address.endswith('.sha256'):
+                return f'{expected_hash}  {asset}\n'.encode()
+            return data
+        path = self.root / 'skills' / m['id'] / 'metadata.json'
+        # Simulate a pending update that retains an earlier download.
+        m['publishedVersion'] = '1.2.0'
+        path.write_text(json.dumps(m), encoding='utf-8')
+        catalog.generate(self.root)
+        catalog.confirm_publication(m['id'], self.root, fetch)
+        self.assertEqual(catalog.load(self.root)[0][0]['publishedVersion'], m['version'])
+        catalog.generate(self.root, check=True)
+        link = catalog.download_url({**m, 'publishedVersion': m['version']})
+        self.assertIn(link, (self.root / 'README.md').read_text(encoding='utf-8'))
+        self.assertIn(link, (self.root / 'docs/skills' / (m['id'] + '.md')).read_text(encoding='utf-8'))
+
+    def test_failed_confirmation_leaves_metadata_and_pages_unchanged(self):
+        m, files = catalog.load(self.root)[0]
+        asset = catalog.asset_name(m)
+        data = v.package_bytes(files)
+        checksum = f'{hashlib.sha256(data).hexdigest()}  {asset}\n'.encode()
+        original_release = {'tag_name': catalog.tag_name(m), 'draft': False, 'prerelease': False, 'assets': [{'name': asset, 'state': 'uploaded'}, {'name': asset + '.sha256', 'state': 'uploaded'}]}
+        before = {p: p.read_bytes() for p in [self.root / 'README.md', self.root / 'skills' / m['id'] / 'metadata.json', self.root / 'docs/skills' / (m['id'] + '.md')]}
+        for change in [{'draft': True}, {'prerelease': True}, {'assets': []}, {'tag_name': 'wrong'}, {'zip': b'wrong'}, {'checksum': b'wrong'}]:
+            def fetch(address, limit):
+                if '/releases/tags/' in address:
+                    return json.dumps({**original_release, **{k: value for k, value in change.items() if k in original_release}}).encode()
+                if address.endswith('.sha256'):
+                    return change.get('checksum', checksum)
+                return change.get('zip', data)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                catalog.confirm_publication(m['id'], self.root, fetch)
+            self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_usage_survives_generation_and_stays_outside_package(self):
+        path = next((self.root / 'skills').glob('*/metadata.json'))
+        m, files = catalog.load(self.root)[0]
+        package_before = v.package_bytes(files)
+        m['usage'] = {'steps': ['Supply the input image.'], 'examples': ['Review [this] <image>.'], 'expectedOutput': 'Prioritized fixes.'}
+        path.write_text(json.dumps(m), encoding='utf-8')
+        catalog.generate(self.root)
+        catalog.generate(self.root, check=True)
+        page = (self.root / 'docs/skills' / (m['id'] + '.md')).read_text(encoding='utf-8')
+        self.assertIn('## How to use', page)
+        self.assertIn('1. Supply the input image.', page)
+        self.assertIn('Review \\[this\\] &lt;image&gt;.', page)
+        self.assertEqual(package_before, v.package_bytes(catalog.load(self.root)[0][1]))
+
+    def test_publication_and_usage_schema_reject_invalid_values(self):
+        path = next((self.root / 'skills').glob('*/metadata.json'))
+        original = json.loads(path.read_text(encoding='utf-8'))
+        for change in [{'publishedVersion': 'latest'}, {'publishedVersion': '99.0.0'}, {'publishedVersion': '../bad'}, {'usage': {}}, {'usage': {'steps': [], 'examples': ['Example'], 'expectedOutput': 'Result'}}]:
+            path.write_text(json.dumps({**original, **change}), encoding='utf-8')
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                catalog.load(self.root)
+
     def test_build_excludes_metadata_and_is_repeatable(self):
         first = catalog.build(self.root)
         data = (self.root / 'dist' / first[0]['asset']).read_bytes()

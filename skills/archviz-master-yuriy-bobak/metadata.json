@@ -3,9 +3,27 @@
   "id": "archviz-master-yuriy-bobak",
   "title": "ArchViz Master (Yuriy Bobak)",
   "version": "1.2.1",
+  "publishedVersion": "1.2.1",
   "category": "Architectural visualization",
   "purpose": "Architectural render critique, composition, mood design, and production planning.",
-  "author": {"name": "Yuriy Bobak", "profile": null},
+  "usage": {
+    "steps": [
+      "After importing, start a new AI chat. If you want to select the skill explicitly, ask the assistant to use ArchViz Master by Yuriy Bobak.",
+      "For image critique, attach your render and any references. State the intended mood, audience, deliverable, and constraints such as fixed architecture, camera, budget, or deadline. Ask for a prioritized critique; no live Max connection is needed.",
+      "For live scene assistance, connect Max Ultra MCP to the intended 3ds Max scene, describe the target objects and installed renderer/plugins, and explicitly state which changes you authorize. Importing the skill does not itself change the scene."
+    ],
+    "examples": [
+      "Use ArchViz Master by Yuriy Bobak to critique this exterior render. The goal is a calm residential presentation. Keep the architecture fixed and prioritize the three most important improvements.",
+      "Suggest three camera alternatives for this reference: explain focal hierarchy, negative space, and crop. Keep the building dimensions and landscape layout unchanged.",
+      "Review the mood, lighting, and materials in this interior. Suggest changes for a soft overcast feel while preserving the furniture and color palette; explain how to check the result.",
+      "Use ArchViz Master with Max Ultra MCP on the connected scene. Inspect the selected camera and propose a framing adjustment. You may adjust that camera only; keep geometry, materials, and render settings unchanged."
+    ],
+    "expectedOutput": "Prioritized issues with reasons, proposed changes, and concrete verification checks. Image-based suggestions are advice; live changes depend on the connected tools and your authorization. These examples describe intended use, not a claim of tested output quality."
+  },
+  "author": {
+    "name": "Yuriy Bobak",
+    "profile": null
+  },
   "submitter": null,
   "reviewer": null,
   "dependencies": [
