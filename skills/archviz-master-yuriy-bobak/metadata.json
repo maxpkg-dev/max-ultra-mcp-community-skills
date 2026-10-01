@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "archviz-master-yuriy-bobak",
+  "title": "ArchViz Master (Yuriy Bobak)",
+  "version": "1.2.1",
+  "category": "Architectural visualization",
+  "purpose": "Architectural render critique, composition, mood design, and production planning.",
+  "author": {"name": "Yuriy Bobak", "profile": null},
+  "submitter": null,
+  "reviewer": null,
+  "dependencies": [
+    "For image critique: an AI client with image input; no live Max connection required.",
+    "For scene work: Autodesk 3ds Max and Max Ultra MCP with the applicable execution tools.",
+    "Corona, ForestPack, and RailClone are workflow-specific references, not required for every task."
+  ],
+  "testedVersions": [],
+  "verification": {
+    "level": "discovery-reported",
+    "evidence": "Package structure and internal references validated. The user reported a successful import and appearance in the available-skills list. Practical AI-client behavior and real 3ds Max execution have not been tested. The inherited 3ds Max 2027-family target is not a tested-version claim."
+  },
+  "terms": {
+    "distribution": "Free distribution authorized by Yuriy Bobak according to the user's report on 2026-10-01. Preserve attribution and the package provenance note.",
+    "adaptation": "The user authorized preparation of this adapted package. No general modification right, sublicensing grant, or open-source license is asserted.",
+    "evidence": "User-reported permission; an independent written license was not inspected. See package/references/provenance-and-distribution.md."
+  },
+  "provenance": "Prepared ArchViz Master 1.2.1 distribution, retaining Yuriy Bobak attribution and the source package's historical evidence. Book references are selective summaries and production interpretations; no source books, scans, artwork, or licensed plugin assets are bundled.",
+  "submission": null,
+  "packageSha256": "32aac69cc935d74cb587b62b76a003604071fa770b489f88f5685040cdc57c38"
+}
