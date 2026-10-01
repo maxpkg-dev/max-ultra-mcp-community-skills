@@ -1,0 +1,32 @@
+{
+  "skill": "archviz-master-yuriy-bobak",
+  "version": "1.2.1",
+  "production_workflows": [
+    "workflows--production--exterior-still.md",
+    "workflows--production--interior-still.md",
+    "workflows--production--exterior-animation.md",
+    "workflows--production--interior-animation.md",
+    "workflows--production--camera.md",
+    "workflows--production--lighting.md",
+    "workflows--production--materials.md",
+    "workflows--production--vegetation.md",
+    "workflows--production--facade.md",
+    "workflows--production--scene-optimization.md",
+    "workflows--production--render-farm.md",
+    "workflows--production--troubleshooting.md"
+  ],
+  "routing": "workflows--production--router.md",
+  "software_baseline": {
+    "3ds_max": "2027 family",
+    "corona": "current official Corona for 3ds Max docs / Corona 15-era workflow",
+    "forestpack": "current official ITOOSOFT docs",
+    "railclone": "current official ITOOSOFT docs"
+  },
+  "principle": "artistic diagnosis first, software implementation second",
+  "packaging_revision": "max-ultra-visible-author-name",
+  "path_base": "All file paths in this manifest are relative to this manifest in references.",
+  "software_verification": "Sampled official claims checked on 2026-10-01; no live Max or client activation tests. See compatibility-and-validation.md.",
+  "integration": "max-ultra-integration.md",
+  "provenance": "provenance-and-distribution.md",
+  "compatibility": "compatibility-and-validation.md"
+}

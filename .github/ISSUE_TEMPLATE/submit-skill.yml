@@ -1,0 +1,96 @@
+name: Submit a skill
+description: Propose an instruction-only skill for the reviewed community catalog.
+title: "[Skill] "
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for contributing to 3DGROUND - Max Ultra MCP. This opens a discussion, not an automatic publication. Supply one ZIP or a public download link."
+  - type: input
+    id: title-version
+    attributes:
+      label: Skill title and version
+      placeholder: My skill - 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose and example task
+      description: Explain the intended result and when this skill should be used.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Architectural visualization
+        - Modeling
+        - Materials
+        - Lighting
+        - Cameras
+        - Scene preparation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: author
+    attributes:
+      label: Author credit and public profile
+      description: Name the author and optionally link their public portfolio. Explain your relationship if you are submitting someone else's work.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and tested versions
+      description: List required tools/plugins and exact versions actually tested. State untested where appropriate.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Verification evidence
+      description: Separate package validation, import/discovery, and practical AI-client or 3ds Max tests. Describe the task and observed result.
+    validations:
+      required: true
+  - type: upload
+    id: package
+    attributes:
+      label: Skill ZIP
+      description: One skill per ZIP. GitHub uploads support archives up to 25 MB; use the link field for larger packages within the 54 MiB importer limit.
+    validations:
+      required: false
+      accept: ".zip"
+  - type: input
+    id: package-link
+    attributes:
+      label: Public HTTPS ZIP link
+      description: Optional alternative to the ZIP upload. Provide either the attachment or this link; a maintainer checks it manually.
+    validations:
+      required: false
+  - type: textarea
+    id: terms
+    attributes:
+      label: Distribution permission and adaptation terms
+      description: State what may be shared and changed, who authorized it, and whether the evidence is direct or reported. Do not disclose private correspondence. No blanket license is assumed.
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Origin and third-party material
+      description: Credit source authors and adaptations. Identify summaries, references, and any separately licensed content.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I supplied a ZIP or a public download link and removed private paths, credentials, and customer data.
+          required: true
+        - label: I accurately described distribution permission and third-party content, without claiming rights I do not have.
+          required: true
+        - label: I understand that maintainers review this submission before publication.
+          required: true
