@@ -1,13 +1,15 @@
 # Install and update
 
-1. Click **Download ZIP** in the catalog or on the skill's detail page. The file downloads directly; the version is shown beside the link.
-2. Optionally compare the file's SHA-256 with the **SHA-256** link on the detail page.
+1. Click **Download ZIP** in the catalog or on the skill's detail page. The permanent link downloads the latest verified published ZIP for that skill.
+2. Use **Version history and checksums** on the detail page to inspect numbered releases.
+   Compare the downloaded ZIP with the checksum for the version identified inside its instructions
+   or on the rolling release page; older numbered downloads remain available.
 3. Open **Skills → Custom → Import ZIPs** in Max Ultra MCP and select the ZIP.
 4. Start a new conversation in your AI client (or restart it if discovery has not refreshed).
 
 Import each skill separately. Read attribution, dependencies, permissions, and verification evidence first.
 
-The link tracks the latest confirmed published version of that specific skill. A new skill
+The link never changes across versions and tracks the latest verified published ZIP of that specific skill. A new skill
 shows **Publication pending** until its ZIP is available. While an update awaits publication,
 the existing version remains downloadable. You do not need GitHub's Source code archives.
 

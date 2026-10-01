@@ -1,5 +1,15 @@
 # Max Ultra MCP Community Skills
 
+## Skill catalog
+
+<!-- catalog:start -->
+
+| Skill | Author | Category | Purpose | Version | Verification | Download |
+| --- | --- | --- | --- | --- | --- | --- |
+| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | Yuriy Bobak | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
+
+<!-- catalog:end -->
+
 Community-created skills for **3DGROUND — Max Ultra MCP**.
 
 Discover workflows for architectural visualization, modeling,
@@ -14,20 +24,13 @@ materials, lighting, cameras, and scene preparation.
 
 Import each skill separately.
 
-**Download ZIP** downloads the latest confirmed published version of that skill
-directly. Its version appears beside the button. New versions awaiting publication
-do not replace an existing download; new skills show **Publication pending** until ready.
+**Download ZIP** is a permanent per-skill link. Publishing an accepted numbered release
+automatically verifies its ZIP and refreshes that same download address, including releases
+published through GitHub's interface. Pending or failed verification leaves the last good
+version in place; new skills show **Publication pending** until first confirmation.
 See [installation and updates](docs/INSTALL.md).
 
-## Skill catalog
 
-<!-- catalog:start -->
-
-| Skill | Author | Category | Purpose | Version | Verification | Download |
-| --- | --- | --- | --- | --- | --- | --- |
-| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | Yuriy Bobak | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip) (v1.2.1) |
-
-<!-- catalog:end -->
 
 ## Add or publish a skill without AI
 

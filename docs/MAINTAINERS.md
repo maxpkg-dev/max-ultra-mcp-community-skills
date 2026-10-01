@@ -37,8 +37,8 @@ does not use `pull_request_target` or a privileged `workflow_run` artifact hando
    metadata claims, and generated output. Require the **validate** check and review before merge.
 8. Merge accepted content. When release automation is enabled, the default-branch push
    builds each version and publishes missing releases after the environment approval.
-   Existing published assets must match exactly; they are never overwritten. After the
-   release is public, confirm the catalog download as described below. Close the
+   Existing numbered assets must match exactly; they are never overwritten. After the
+   release is public, verify the automatic download refresh described below. Close the
    submission issue with its accepted PR/release or a clear rejection reason.
 
 The initial ArchViz contribution retains user-reported distribution permission and an
@@ -64,33 +64,38 @@ Nothing in the local implementation changes GitHub settings or publishes release
    Without it, the release job is skipped. Run **Publish accepted skills** manually on the
    default branch for the first release, and approve the environment after checking the commit.
 7. Verify the release contains the per-skill ZIP and checksum, download/import it, then
-   complete the download confirmation below. Future accepted default-branch pushes use the same path.
+   check the automatic download confirmation below. Future accepted default-branch pushes use the same path.
 
-## Advance a skill's direct download
+## Automatic permanent downloads
 
-Keep `publishedVersion` at the previous public version when preparing an update, or null
-for a new skill. Merge the reviewed package/version first, then publish its release. Only
-after the public ZIP and checksum are present, run:
+Keep `publishedVersion` at the previous confirmed version while preparing an update, or null
+for a new skill. Once the accepted numbered release is published, **Refresh published skill
+download** verifies its ZIP/checksum against current default-branch source, refreshes the
+permanent per-skill download, and commits the confirmed metadata/generated pages to main.
+This release-event workflow works independently of ENABLE_SKILL_RELEASES, so manually
+published numbered releases refresh automatically even while automatic version publishing
+is disabled. The integrated publisher calls the same updater directly because its token's
+release events do not start another workflow. The two workflows share a concurrency group.
 
-```sh
-python tools/catalog.py confirm-publication <skill-id>
-```
+The ordinary owner flow is: accept source on main, publish its numbered release with both
+assets, wait for the download-refresh check. No manual URL or metadata update is needed.
+Do not publish an unaccepted version or omit its checksum. Unknown/nonmatching releases are
+ignored; inconsistent or immutable alias state fails without overwriting numbered releases.
 
-This command reads GitHub, checks the current version's public stable release and exact
-ZIP/checksum bytes, then updates `publishedVersion` and regenerates README/detail links
-locally. Review and commit those changes, then push to main where permitted or use the
-required PR path. It never publishes, uploads,
-pushes, or overwrites release assets. The release workflow does not write to the protected
-branch; its log reminds maintainers to complete this confirmation step.
+The download updater uses a normal catalog-only commit and non-force push. If repository
+protection requires a review, the push fails rather than bypassing it; complete that required
+review for metadata and inspect the reported failure. A previously active stable URL can
+already serve the verified new ZIP while a metadata update awaits acceptance. Configure
+repository rules consistently with the desired automatic catalog-update policy.
 
-The old direct download remains valid during this two-step publication process. A new
-skill has no download button until confirmation. Each skill advances independently; do
-not use the repository-wide `/releases/latest` URL. Catalog updates do not update installed
-copies. If a release is withdrawn, explicitly revert its pointer or set it to null.
+Versioned ZIPs and checksums remain unchanged. Only the explicitly managed `<id>-latest`
+release is mutable. Its tag is a fixed anchor, not a moving pointer to the current source.
+See [rolling download design and recovery](ROLLING_DOWNLOADS.md) for staging, rollback,
+GitHub cache/brief-switch limitations, and the recovery-only command.
 
-No personal access token, website deployment, Pages hosting, or bot write access to PRs
-is required. The release job alone has `contents: write`; its token is supplied only to the
-publisher step. Checkout does not persist credentials. All jobs use GitHub-hosted runners.
+Both publishing jobs use `contents: write`; PR validation stays read-only. Tokens are passed
+only to their required steps and are not persisted by checkout. No external hosting or PAT
+is required. No automatic version-publishing gate is enabled by adding the alias workflow.
 
 ## Recovery and updates
 

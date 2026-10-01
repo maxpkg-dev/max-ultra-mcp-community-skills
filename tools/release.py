@@ -34,7 +34,7 @@ class GitHub:
 
     def request(self, method, path, body=None, binary=False):
         url = path if path.startswith('https://') else self.base + path
-        require(url.startswith((self.base + '/', self.upload_base + '/')), 'Unexpected API endpoint')
+        require(url == self.base or url.startswith((self.base + '/', self.upload_base + '/')), 'Unexpected API endpoint')
         headers = {'Authorization': 'Bearer ' + self.token, 'Accept': 'application/octet-stream' if binary else 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'}
         if isinstance(body, bytes):
             data = body
@@ -43,7 +43,8 @@ class GitHub:
             data = json.dumps(body).encode() if body is not None else None
             headers['Content-Type'] = 'application/json'
         with build_opener(AssetRedirect()).open(Request(url, data=data, headers=headers, method=method), timeout=60) as response:
-            result = response.read()
+            result = response.read(54 * 1024 * 1024 + 1)
+        require(len(result) <= 54 * 1024 * 1024, 'API response exceeds package size bound')
         return result if binary else json.loads(result)
 
     def find(self, tag):
@@ -99,7 +100,6 @@ def publish(api, item, commit, output):
     if release['draft']:
         api.request('PATCH', '/releases/' + str(release['id']), {'draft': False, 'make_latest': 'false'})
     print('Verified release: ' + item['tag'])
-    print('To advance the catalog download after publication, run locally: python tools/catalog.py confirm-publication ' + item['id'])
 
 
 def main():
@@ -110,8 +110,17 @@ def main():
     commit = os.environ['GITHUB_SHA']
     require(re.fullmatch(r'[a-f0-9]{40}', commit), 'Expected commit SHA')
     api = GitHub(os.environ['GITHUB_REPOSITORY'], os.environ['GH_TOKEN'])
+    from rolling import accepted_commit, refresh, commit_catalog
+    from catalog import confirm_publication
+    ids = []
     for item in build():
+        accepted, default = accepted_commit(api, item)
+        require(accepted == commit, 'Publisher commit is no longer the default branch head')
         publish(api, item, commit, ROOT / 'dist')
+        refresh(api, item, commit, ROOT / 'dist')
+        confirm_publication(item['id'])
+        ids.append(item['id'])
+    commit_catalog(api, ids, default)
 
 
 if __name__ == '__main__':

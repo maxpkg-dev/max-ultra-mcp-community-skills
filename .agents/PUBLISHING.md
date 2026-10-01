@@ -112,8 +112,9 @@ and is not an automatic update of installed copies.
 
 Use an explicit stable X.Y.Z version. Infer it from the prepared package when reliable. If
 released package bytes change, choose the next appropriate version within an authorized
-update or clarify a materially ambiguous version choice. Never reuse an existing public
-version for different bytes, move its tag, overwrite assets, or delete older releases.
+update or clarify a materially ambiguous version choice. Never reuse an existing numbered public
+version for different bytes, move its tag, overwrite its assets, or delete older releases.
+Only the explicitly managed rolling alias follows the exception documented in section 7.
 Catalog-only corrections, including usage guidance, do not require a skill ZIP revision.
 
 Create/update `skills/<id>/metadata.json` and `skills/<id>/package/`. All required fields are
@@ -224,31 +225,34 @@ ones. If existing bytes differ or a public release is incomplete, stop mutation,
 specific mismatch, and resolve through a new version or explicit maintainer recovery. Never
 hide an inconsistency by deleting a public version. Preserve prior published releases.
 
-## 7. Confirm the external download and advance the catalog
+## 7. Verify the automatic permanent download
 
-After the ZIP and checksum are public, run from the accepted current-version source:
+Publishing an accepted numbered release in GitHub triggers **Refresh published skill download**.
+It verifies the current accepted source and numbered ZIP/checksum, then updates only the
+managed per-skill rolling release. The integrated version publisher invokes the same updater
+because releases created with GITHUB_TOKEN do not trigger a second workflow. Both paths
+confirm the external stable download and automatically commit updated metadata/catalog pages
+with a normal non-force push. This requires no manual URL update and is independent of the
+currently disabled automatic version-publishing gate.
 
-```sh
-python tools/catalog.py confirm-publication <id>
-python tools/catalog.py check
-```
+Monitor the refresh job and default-branch result. Confirm the permanent URL serves the
+expected ZIP, its SHA-256 matches the immutable numbered release, and attribution/How to use
+remain intact. Do not call a job merely queued or skipped a successful refresh. If the job
+fails, diagnose the exact gate, content mismatch, or protection issue; do not force a push.
 
-The command fetches the public stable release, actual ZIP, and checksum; it compares the ZIP
-with the deterministic reviewed package before updating local publishedVersion and generating
-README/detail links. It does not publish or push. A missing/draft/prerelease or mismatched
-asset must leave the download pointer unchanged. Do not bypass a failed comparison manually.
+The only mutable release is the marked `<id>-latest` download alias. Never update numbered
+release assets/tags. The alias tag remains fixed; candidates are uploaded and verified before
+renaming, and prior bytes are retained for recovery. GitHub does not provide atomic asset
+replacement, so a switch may briefly return 404 and cached redirects may briefly serve the
+previous file. See [ROLLING_DOWNLOADS.md](../docs/ROLLING_DOWNLOADS.md), including its serial
+execution rule, interruption recovery, and immutability limits.
 
-Review and commit these metadata/generated-page changes, then push to main when permitted
-within existing publication authorization. Use a follow-up PR only when required by rules
-or explicit user direction. Until this catalog commit reaches the default branch, the live
-catalog still points to the previous confirmed version (or shows Publication pending).
-State this accurately if work stops at a review boundary.
-Do not call the catalog update complete based only on a modified local file.
-
-Use the canonical per-skill direct URL generated from tag and filename. Never use a global
-/releases/latest link in this multi-skill repository. Confirm the default-branch README and
-detail page contain the expected direct download and How to use section, and that the public
-asset still matches the verified checksum. Installed copies are not updated automatically.
+For authorized initialization/recovery only, rerun the refresh workflow for the exact skill,
+or use `python tools/rolling.py --skill <id>` from current accepted source with authenticated
+gh/GH_TOKEN. This local command refreshes the alias and verifies/updates local metadata;
+commit/push those local changes if any. It is not the normal recurring publication step.
+Never manually mark an unverified download confirmed. Use no repository-global latest URL.
+Installed copies are not updated automatically.
 
 ## 8. Report the result simply
 
@@ -281,5 +285,5 @@ the user's language; keep repository and public GitHub content English.
 
 When the user requests a human-operated workflow, link to the
 [manual publishing guide](../docs/MANUAL_PUBLISHING.md). It uses the same validator, metadata,
-release conventions, and explicit post-publication catalog confirmation. Follow the user's
+release conventions, and automatic post-publication stable-download confirmation. Follow the user's
 requested pace instead of performing publication steps they want to do themselves.

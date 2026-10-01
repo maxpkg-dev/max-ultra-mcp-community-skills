@@ -205,11 +205,12 @@ class CatalogTests(unittest.TestCase):
     def test_download_is_scoped_to_skill_and_confirmed_version(self):
         m, _ = catalog.load(self.root)[0]
         m = {**m, 'publishedVersion': '1.2.1', 'version': '1.3.0'}
-        expected = catalog.REPO + '/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip'
+        expected = catalog.REPO + '/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip'
         self.assertEqual(catalog.download_url(m), expected)
-        self.assertIn('Version 1.3.0 is awaiting confirmed publication', catalog.download_section(m))
+        self.assertEqual(catalog.download_url(m), catalog.download_url({**m, 'publishedVersion': '1.3.0'}))
+        self.assertIn('permanent link', catalog.download_section(m))
         other = {**m, 'id': 'another-skill', 'publishedVersion': '1.0.0'}
-        self.assertIn('/another-skill-v1.0.0/another-skill-1.0.0-', catalog.download_url(other))
+        self.assertIn('/another-skill-latest/another-skill-latest-', catalog.download_url(other))
         pending = {**m, 'publishedVersion': None}
         self.assertIsNone(catalog.download_url(pending))
         self.assertNotIn('Download ZIP', catalog.download_section(pending))

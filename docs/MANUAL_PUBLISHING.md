@@ -231,7 +231,7 @@ Do not hand-edit that generated page. Keep `testedVersions` empty if untested; u
 with actual task results, versions, and a recorded reviewer as required by the schema.
 
 For a new skill, keep `publishedVersion` null. For an update, retain the previous confirmed
-published version. The newer download will be enabled only after step 7 verifies publication.
+published version. The automatic workflow in step 7 will confirm the new publication and update the catalog.
 
 ### 4. Generate, test, and build
 
@@ -335,59 +335,54 @@ Use these naming rules; the example is an already-published release, not a versi
 These controls follow [GitHub's release instructions](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 GitHub's extra Source code archives are automatic repository snapshots, not the skill ZIP.
 The repository-wide latest-release label is not used for catalog downloads; skills advance
-independently. A release page alone does not update the README button.
+independently. Only a successful verification/refresh job confirms the new version for the permanent download.
 
-### 7. Verify publication and update the Download ZIP button
+### 7. Wait for the automatic permanent download refresh
 
-From the clean accepted source checkout on main, run:
+After publishing the accepted numbered release with its ZIP and checksum, open **Actions**
+and wait for **Refresh published skill download** to finish successfully. The workflow verifies
+the public files against accepted main, refreshes that skill's permanent download, and updates
+catalog metadata/pages automatically. It runs for releases published through GitHub's interface
+even when **Publish accepted skills** is disabled. You do not run a refresh command, edit the
+link, or make another catalog commit during normal publication.
 
-```powershell
-& .venv/Scripts/python.exe tools/catalog.py confirm-publication "$skillId"
-& .venv/Scripts/python.exe tools/catalog.py check
-git diff -- "$skillDirectory/metadata.json" README.md "docs/skills/$skillId.md"
-```
-
-`confirm-publication` reads the public stable release, downloads its ZIP/checksum, compares
-them with the deterministic reviewed package, then changes local `publishedVersion` and
-regenerates the README/detail page. It does not upload, publish, commit, push, or merge.
-If it fails, fix the actual release/source mismatch; do not manually set the pointer to
-pretend validation succeeded. A failed network request is not publication confirmation.
-
-If confirmation changes files, commit and push them:
+Synchronize the automatic catalog commit into your local checkout:
 
 ```powershell
-git add "$skillDirectory/metadata.json" README.md "docs/skills/$skillId.md"
-git diff --cached --check
-git commit -m "Confirm $skillId $skillVersion download"
-git push origin main
-```
-
-Wait for **Validate catalog** on this new commit. Use a follow-up PR only if protection
-requires it, then wait for acceptance and synchronize:
-
-```powershell
-git switch main
 git pull --ff-only origin main
 & .venv/Scripts/python.exe tools/catalog.py check
 ```
 
-If no files changed, the publication was already recorded; there is no need for an empty commit.
-Until the confirmation changes reach `main`, the website README still shows the previous
-confirmed download, or Publication pending for a first release. There is no automatic
-refresh merely from uploading the ZIP.
-
-Open the repository README on `main` and click **Download ZIP** for your skill. It should
-start downloading the named skill ZIP directly. Its URL follows this per-skill pattern:
+Open the README on main and click **Download ZIP**. This exact address is stable across versions:
 
 ```text
-https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/<id>-v<version>/<id>-<version>-max-ultra-mcp.zip
+https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/<id>-latest/<id>-latest-max-ultra-mcp.zip
 ```
 
-Do not substitute `/releases/latest`. Check the downloaded file's hash against the checksum,
-then use **Skills > Custom > Import ZIPs** in Max Ultra MCP. Start a new AI chat and try a
-request from **How to use**. Report only what you actually tested. For replacement of an
-existing same-name skill, preserve local changes and follow [INSTALL.md](INSTALL.md).
-Updating the catalog link does not automatically update installed copies.
+Use **Version history and checksums** for original numbered releases and pinned older
+versions. Check the downloaded ZIP's hash against its numbered version, then import through
+**Skills > Custom > Import ZIPs** and start a new AI chat. Try a request from **How to use**
+and report only what you actually tested. See [INSTALL.md](INSTALL.md) for same-name updates.
+The stable URL does not automatically replace an already installed skill.
+
+If refresh fails, read the job error; do not manually claim the new download is ready.
+The usual causes are an unaccepted version, missing/mismatched ZIP or checksum, immutable
+rolling release, or a protected-branch rejection of the catalog commit. The last verified
+version is preserved during staging; GitHub's rename-based switch is not atomic. A process
+interruption can require recovery, and cached downloads can briefly return the previous ZIP.
+
+For recovery only, use **Actions > Refresh published skill download > Run workflow** on
+main and enter the exact skill ID in the skill field. An authenticated local alternative is:
+
+```powershell
+& .venv/Scripts/python.exe tools/rolling.py --skill "$skillId"
+```
+
+The local recovery command uses your GitHub CLI login or GH_TOKEN, checks accepted source,
+refreshes only this skill's managed alias, and confirms local metadata. If local metadata
+changed, review, commit, and push it normally. This is not required for ordinary new releases.
+Never rename/delete numbered release assets to repair an alias; follow
+[ROLLING_DOWNLOADS.md](ROLLING_DOWNLOADS.md) for detailed recovery and limitations.
 
 ### 8. Finish cleanly
 
@@ -396,7 +391,6 @@ workflow creates no extra branches or worktrees to clean up. Keep release tags a
 public releases. Keep original sources/backups outside committed package content.
 Share the direct ZIP link, author/version, and How to use page, with any remaining test limits.
 
-For future updates repeat the reviewed source -> immutable release -> confirmed catalog
-pointer sequence. For catalog-only wording changes, regenerate the pages, review, commit, and push main
+For future updates repeat reviewed source -> numbered release -> automatic verified download refresh. For catalog-only wording changes, regenerate the pages, review, commit, and push main
 where permitted; use a PR only if required. Do not reupload an unchanged public release
 just to update its documentation.

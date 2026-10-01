@@ -5,6 +5,8 @@ import html
 import json
 from pathlib import Path
 import re
+from time import sleep
+from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -108,28 +110,26 @@ def tag_name(m):
 def download_url(m):
     if m['publishedVersion'] is None:
         return None
-    published = {**m, 'version': m['publishedVersion']}
-    return f'{REPO}/releases/download/{tag_name(published)}/{asset_name(published)}'
+    return f"{REPO}/releases/download/{m['id']}-latest/{m['id']}-latest-max-ultra-mcp.zip"
 
 
 def download_link(m):
     target = download_url(m)
-    return f"[Download ZIP]({target}) (v{m['publishedVersion']})" if target else 'Publication pending'
+    return f"[Download ZIP]({target})" if target else 'Publication pending'
 
 
 def download_section(m):
     target = download_url(m)
     if target is None:
         return f"Version {m['version']} is awaiting confirmed publication. No download is available yet."
-    result = f"**{download_link(m)}** · [SHA-256]({target}.sha256)"
-    if m['publishedVersion'] != m['version']:
-        result += f"\n\nVersion {m['version']} is awaiting confirmed publication. The download remains on v{m['publishedVersion']}, the latest confirmed release for this skill."
-    return result
+    return (f"**{download_link(m)}** · [Version history and checksums]({REPO}/releases?q={m['id']}-v)"
+            "\n\nThis permanent link downloads this skill's latest verified published ZIP. "
+            "It stays the same when a new version is released. Numbered releases remain available in the history.")
 
 
 def public_bytes(address, limit):
     # Only caller-constructed GitHub endpoints are used; no submitted URLs or credentials.
-    request = Request(address, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'max-ultra-community-catalog'})
+    request = Request(address, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'max-ultra-community-catalog', 'Cache-Control': 'no-cache'})
     with urlopen(request, timeout=60) as response:
         data = response.read(limit + 1)
     require(len(data) <= limit, 'Published response exceeds size limit')
@@ -148,11 +148,26 @@ def confirm_publication(skill_id, root=ROOT, fetch=public_bytes):
     names = {asset['name'] for asset in published['assets'] if asset['state'] == 'uploaded'}
     asset = asset_name(m)
     require({asset, asset + '.sha256'} <= names, 'ZIP and checksum must both be uploaded')
+    versioned_target = f'{REPO}/releases/download/{tag_name(m)}/{asset_name(m)}'
     target = download_url({**m, 'publishedVersion': m['version']})
     expected_hash = hashlib.sha256(package_bytes(files)).hexdigest()
-    require(hashlib.sha256(fetch(target, MAX_ZIP)).hexdigest() == expected_hash, 'Published ZIP differs from reviewed package')
-    checksum = fetch(target + '.sha256', 4096).decode('utf-8').strip()
+    require(hashlib.sha256(fetch(versioned_target, MAX_ZIP)).hexdigest() == expected_hash, 'Published ZIP differs from reviewed package')
+    checksum = fetch(versioned_target + '.sha256', 4096).decode('utf-8').strip()
     require(checksum == f'{expected_hash}  {asset}', 'Published checksum differs from reviewed package')
+    alias = json.loads(fetch(f"{api}/releases/tags/{m['id']}-latest", 1024 * 1024))
+    require(not alias['draft'] and not alias['prerelease'], 'Stable download alias is not public')
+    matches = False
+    for attempt in range(4):
+        try:
+            matches = hashlib.sha256(fetch(target, MAX_ZIP)).hexdigest() == expected_hash
+        except URLError:
+            if attempt == 3:
+                raise
+        if matches:
+            break
+        if attempt < 3:
+            sleep(2 ** attempt)
+    require(matches, 'Stable download has not advanced to this verified version; retry after GitHub cache propagation')
     # All remote checks finish before local metadata or links change.
     m['publishedVersion'] = m['version']
     path = root / 'skills' / m['id'] / 'metadata.json'

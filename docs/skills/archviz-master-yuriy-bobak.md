@@ -7,7 +7,9 @@ Architectural render critique, composition, mood design, and production planning
 
 ## Download and install
 
-**[Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip) (v1.2.1)** · [SHA-256](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip.sha256)
+**[Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip)** · [Version history and checksums](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases?q=archviz-master-yuriy-bobak-v)
+
+This permanent link downloads this skill's latest verified published ZIP. It stays the same when a new version is released. Numbered releases remain available in the history.
 
 In Max Ultra MCP, use **Skills → Custom → Import ZIPs**, then start a new AI chat.
 For updates and duplicate-name handling, see the [installation guide](../INSTALL.md).

@@ -16,7 +16,7 @@ def read_yaml(path):
 class AutomationTests(unittest.TestCase):
     def test_workflows_are_pinned_and_have_no_untrusted_publication_trigger(self):
         workflows = {p.stem: read_yaml(p) for p in (ROOT / '.github/workflows').glob('*.yml')}
-        self.assertEqual(set(workflows), {'validate', 'release'})
+        self.assertEqual(set(workflows), {'validate', 'release', 'download'})
         for name, data in workflows.items():
             self.assertEqual(data['permissions'], {'contents': 'read'})
             self.assertFalse({'issues', 'issue_comment', 'pull_request_target', 'workflow_run'} & set(data['on']))
@@ -42,6 +42,16 @@ class AutomationTests(unittest.TestCase):
         token_steps = [step for step in publication['steps'] if 'GH_TOKEN' in step.get('env', {})]
         self.assertEqual(len(token_steps), 1)
         self.assertEqual(token_steps[0]['run'], 'python3 tools/release.py')
+        refresh = workflows['download']
+        self.assertEqual(refresh['on']['release'], {'types': ['published']})
+        self.assertEqual(set(refresh['on']), {'release', 'workflow_dispatch'})
+        self.assertEqual(refresh['on']['workflow_dispatch']['inputs']['skill']['type'], 'string')
+        self.assertEqual(refresh['concurrency']['group'], workflows['release']['concurrency']['group'])
+        job = refresh['jobs']['refresh']
+        self.assertEqual(job['permissions'], {'contents': 'write'})
+        self.assertIn("!endsWith(github.event.release.tag_name, '-latest')", job['if'])
+        self.assertEqual(job['steps'][0]['with']['ref'], '${{ github.event.repository.default_branch }}')
+        self.assertEqual(job['steps'][-1]['run'], 'python tools/rolling.py --event')
 
     def test_issue_form_uses_documented_fields(self):
         data = read_yaml(ROOT / '.github/ISSUE_TEMPLATE/submit-skill.yml')

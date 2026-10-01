@@ -31,11 +31,10 @@ The fingerprint hashes a sorted UTF-8 JSON inventory of paths, byte counts, and 
 SHA-256 hashes. It is different from the SHA-256 of the finished ZIP. Both are deterministic.
 Package bytes are exempt from Git line-ending normalization to retain source fidelity.
 
-Download links are derived from the skill ID and `publishedVersion`, using GitHub's
-`releases/download/<skill-tag>/<skill-asset>` URL. No repository-global latest-release
-link is used. Bumping `version` leaves the previous `publishedVersion` in place; a pending
-version cannot produce a premature download link. After publishing, run
-`python tools/catalog.py confirm-publication <id>` and commit its metadata/generated-page
-changes to main where permitted, or through a PR when required. This read-only GitHub check
-verifies the public stable release,
-ZIP bytes, and checksum against the reviewed current package before changing local links.
+Download links use the permanent `<id>-latest` release and `<id>-latest-max-ultra-mcp.zip`
+asset name, not `version` or the repository-global latest release. `publishedVersion` records
+the last successful source/alias verification; null hides the first download until ready.
+Publishing an accepted numbered release triggers the rolling-download workflow, which verifies
+the ZIP, refreshes the alias, and commits updated catalog metadata/pages automatically.
+The integrated version publisher invokes the same updater directly. No URL editing is needed
+for later versions. See [ROLLING_DOWNLOADS.md](ROLLING_DOWNLOADS.md) for safety and recovery.
