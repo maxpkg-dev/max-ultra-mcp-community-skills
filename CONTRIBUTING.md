@@ -27,7 +27,9 @@ See [all limits](docs/VALIDATION.md).
 ## Pull requests
 
 Experienced contributors can create `skills/<id>/metadata.json` and `skills/<id>/package/`
-directly. Use [the metadata guide](docs/METADATA.md); unknown author profiles or review
+directly. Include practical usage steps, example requests, and expected output in metadata.
+Set `publishedVersion` to null for a new skill; retain the previous value when preparing
+an update until its new release is public and confirmed. Use [the metadata guide](docs/METADATA.md); unknown author profiles or review
 identities stay `null`. Link the submission issue if one exists.
 
 Run `python tools/catalog.py inspect skills/<id>/package` to get the content fingerprint,

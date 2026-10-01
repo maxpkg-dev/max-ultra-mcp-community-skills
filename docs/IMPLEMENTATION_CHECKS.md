@@ -26,6 +26,7 @@ Not performed: push, PR creation, merge, repository-setting changes, GitHub Acti
 release publication, live Issue Form submission, AI-client behavior tests, or real 3ds Max
 scene work. Current discovery evidence remains the user's reported import/list visibility.
 
-The release workflow is gated off until maintainers complete the activation steps in
-[MAINTAINERS.md](MAINTAINERS.md). Release links in the catalog are availability searches,
-not claims that download assets already exist.
+At this initial checkpoint the release workflow was gated off pending the activation
+steps in [MAINTAINERS.md](MAINTAINERS.md). The initial catalog used release-availability
+searches. Subsequent direct download links are generated only from confirmed publication
+metadata; this historical report does not describe current remote release state.

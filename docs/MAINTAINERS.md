@@ -31,7 +31,8 @@ does not use `pull_request_target` or a privileged `workflow_run` artifact hando
    metadata claims, and generated output. Require the **validate** check and review before merge.
 8. Merge accepted content. When release automation is enabled, the default-branch push
    builds each version and publishes missing releases after the environment approval.
-   Existing published assets must match exactly; they are never overwritten. Close the
+   Existing published assets must match exactly; they are never overwritten. After the
+   release is public, confirm the catalog download as described below. Close the
    submission issue with its accepted PR/release or a clear rejection reason.
 
 The initial ArchViz contribution retains user-reported distribution permission and an
@@ -56,8 +57,29 @@ Nothing in the local implementation changes GitHub settings or publishes release
 6. Set repository Actions variable **ENABLE_SKILL_RELEASES** to the exact string `true`.
    Without it, the release job is skipped. Run **Publish accepted skills** manually on the
    default branch for the first release, and approve the environment after checking the commit.
-7. Verify the release contains the per-skill ZIP and checksum, download/import it, and check
-   the catalog's release search. Future accepted default-branch pushes use the same path.
+7. Verify the release contains the per-skill ZIP and checksum, download/import it, then
+   complete the download confirmation below. Future accepted default-branch pushes use the same path.
+
+## Advance a skill's direct download
+
+Keep `publishedVersion` at the previous public version when preparing an update, or null
+for a new skill. Merge the reviewed package/version first, then publish its release. Only
+after the public ZIP and checksum are present, run:
+
+```sh
+python tools/catalog.py confirm-publication <skill-id>
+```
+
+This command reads GitHub, checks the current version's public stable release and exact
+ZIP/checksum bytes, then updates `publishedVersion` and regenerates README/detail links
+locally. Review and commit those changes in a follow-up PR. It never publishes, uploads,
+pushes, or overwrites release assets. The release workflow does not write to the protected
+branch; its log reminds maintainers to complete this confirmation step.
+
+The old direct download remains valid during this two-step publication process. A new
+skill has no download button until confirmation. Each skill advances independently; do
+not use the repository-wide `/releases/latest` URL. Catalog updates do not update installed
+copies. If a release is withdrawn, explicitly revert its pointer or set it to null.
 
 No personal access token, website deployment, Pages hosting, or bot write access to PRs
 is required. The release job alone has `contents: write`; its token is supplied only to the

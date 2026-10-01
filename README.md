@@ -7,16 +7,16 @@ materials, lighting, cameras, and scene preparation.
 
 ## Install a skill
 
-1. Download the ZIP for the skill you want.
+1. Click **Download ZIP** beside the skill you want.
 2. In Max Ultra MCP, open **Skills → Custom → Import ZIPs**.
 3. Select the downloaded ZIP.
 4. Start a new conversation in your AI client.
 
 Import each skill separately.
 
-Download the named skill ZIP asset from its release, not the repository's
-**Source code (zip)** archive. A catalog entry does not establish that a release
-has been published; **Check Releases** shows available releases for that version.
+**Download ZIP** downloads the latest confirmed published version of that skill
+directly. Its version appears beside the button. New versions awaiting publication
+do not replace an existing download; new skills show **Publication pending** until ready.
 See [installation and updates](docs/INSTALL.md).
 
 ## Skill catalog
@@ -25,7 +25,7 @@ See [installation and updates](docs/INSTALL.md).
 
 | Skill | Author | Category | Purpose | Version | Verification | Download |
 | --- | --- | --- | --- | --- | --- | --- |
-| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | Yuriy Bobak | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Check Releases](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases?q=archviz-master-yuriy-bobak-v1.2.1) |
+| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | Yuriy Bobak | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.1/archviz-master-yuriy-bobak-1.2.1-max-ultra-mcp.zip) (v1.2.1) |
 
 <!-- catalog:end -->
 

@@ -99,6 +99,7 @@ def publish(api, item, commit, output):
     if release['draft']:
         api.request('PATCH', '/releases/' + str(release['id']), {'draft': False, 'make_latest': 'false'})
     print('Verified release: ' + item['tag'])
+    print('To advance the catalog download after publication, run locally: python tools/catalog.py confirm-publication ' + item['id'])
 
 
 def main():
