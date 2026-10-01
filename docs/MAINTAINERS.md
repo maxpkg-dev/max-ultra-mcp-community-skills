@@ -1,5 +1,9 @@
 # Moderation and publication
 
+Owners can hand a folder/ZIP and author information directly to an agent. This route
+does not require an Issue Form; follow the [agent publishing workflow](../.agents/PUBLISHING.md).
+The same package checks, attribution requirements, review boundaries, and release rules apply.
+
 ## Trust boundary
 
 An issue, attachment, external URL, label, or comment is untrusted input. No issue-triggered
