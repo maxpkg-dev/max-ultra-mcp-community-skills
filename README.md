@@ -29,6 +29,11 @@ See [installation and updates](docs/INSTALL.md).
 
 <!-- catalog:end -->
 
+## Add or publish a skill without AI
+
+Follow the [step-by-step manual guide](docs/MANUAL_PUBLISHING.md) to submit through your
+browser or prepare, review, upload, and publish a skill as the repository owner.
+
 ## Contribute
 
 Community submissions are welcome.

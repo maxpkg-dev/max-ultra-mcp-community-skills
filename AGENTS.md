@@ -7,6 +7,12 @@ For owner-supplied skill folders/ZIPs, catalog submissions, skill updates, or pu
 read the canonical [agent publishing workflow](.agents/PUBLISHING.md) before proceeding.
 Owners can provide a package and author directly; do not require an Issue Form.
 
+For owner-authorized changes, use the existing primary checkout and work directly on `main`
+when repository rules permit. Do not create branches, worktrees, or PRs by default. Preserve
+local work, run relevant checks, commit, and push normally. If protection requires a PR, stop
+the direct push and explain that requirement; never bypass it. Explicit task instructions
+can select a different workflow.
+
 Keep public source, metadata, instructions, commits, and PR text in English. Match the
 user's language in conversation. Preserve unrelated changes and source package bytes
 unless adaptation is authorized and necessary. Generate catalog pages from metadata.

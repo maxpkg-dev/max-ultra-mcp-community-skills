@@ -3,12 +3,14 @@
 Owners can hand a folder/ZIP and author information directly to an agent. This route
 does not require an Issue Form; follow the [agent publishing workflow](../.agents/PUBLISHING.md).
 The same package checks, attribution requirements, review boundaries, and release rules apply.
+For authorized owner work, use the existing primary checkout and direct commits/pushes to
+main where permitted; use PRs when required by protection or requested explicitly.
 
 ## Trust boundary
 
 An issue, attachment, external URL, label, or comment is untrusted input. No issue-triggered
 workflow downloads or publishes it. Labels may help humans track work but confer no authority.
-Only reviewed repository content merged into the protected default branch is eligible for
+Only reviewed repository content accepted on the default branch is eligible for
 release. Review tool/workflow changes particularly carefully: Actions execute repository
 tooling, never skill instructions. PR validation has read-only permissions, no secrets, and
 does not use `pull_request_target` or a privileged `workflow_run` artifact handoff.
@@ -76,7 +78,8 @@ python tools/catalog.py confirm-publication <skill-id>
 
 This command reads GitHub, checks the current version's public stable release and exact
 ZIP/checksum bytes, then updates `publishedVersion` and regenerates README/detail links
-locally. Review and commit those changes in a follow-up PR. It never publishes, uploads,
+locally. Review and commit those changes, then push to main where permitted or use the
+required PR path. It never publishes, uploads,
 pushes, or overwrites release assets. The release workflow does not write to the protected
 branch; its log reminds maintainers to complete this confirmation step.
 
@@ -102,3 +105,8 @@ Disable the repository variable to pause future publication. Local `build` alway
 available without credentials. README generation preserves text outside the catalog markers;
 contributors run it before committing and CI fails if generated pages drift. This avoids
 privileged bot commits or duplicate hand-maintained tables.
+
+## Human-operated walkthrough
+
+For local setup, copyable PowerShell commands, and the GitHub release screen sequence,
+see [Add and publish a skill manually](MANUAL_PUBLISHING.md).

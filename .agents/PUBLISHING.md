@@ -14,7 +14,8 @@ that cannot be established from the package, repository, or session. Continue in
 preparation while waiting. Do not repeatedly ask whether to proceed with routine local work.
 
 A request to prepare/adapt a package authorizes that preparation, not publication. A request
-to push/open a PR authorizes those actions, not merge. An explicit request to publish/release
+to push changes authorizes the requested permitted push; a request only to open a PR does
+not authorize merging it. An explicit request to publish/release
 an identified skill authorizes the ordinary in-scope commit, PR, compliant merge, and release
 operations needed to complete it, unless the user sets narrower limits. Repository review,
 branch, and environment protections still apply; user authorization does not make a pending
@@ -53,10 +54,12 @@ necessarily the submitter or reviewer. Do not fabricate a human review identity 
 
 Read root AGENTS.md and applicable instructions. Check the working directory, Git status,
 remote URL, default branch, recent commits, open/merged PRs, and existing skill metadata.
-Fetch when remote access is available. Preserve unrelated edits; use a suitable feature
-branch from the actual current default branch for new work. Reuse the current task branch
-when appropriate. Do not assume a previously created PR is still open or that the default
-branch is main. Use the codex/ branch prefix unless the owner specifies another name.
+Fetch when remote access is available and preserve unrelated edits. The owner prefers the
+existing primary checkout and direct work on main, with normal checks, commit, and push when
+repository rules permit. Do not create branches, worktrees, or PRs by default. If protection
+requires a PR, report that requirement without bypassing it and use a PR route only as
+required/authorized. An explicit task override takes precedence. Inspect the actual default
+branch and PR state; do not assume an old PR remains open.
 
 Before an update or release, inspect the existing tag, draft/public release, and assets.
 Use available GitHub tools or gh; never display authentication secrets. Distinguish a tag
@@ -165,6 +168,12 @@ limits; do not claim the real importer ran.
 
 ## 5. Commit, PR, and accept within authorization
 
+Use the owner-preferred direct-main path when allowed: inspect the diff, complete relevant
+checks and content review, commit, push normally, and monitor main CI. Do not invent a PR
+requirement for an unprotected branch. If the push is rejected by protection, report the
+requirement and do not force or bypass it. The following PR guidance applies only when
+repository rules or the user require that route.
+
 Use available tools to perform authorized GitHub operations. Write concise English commit
 and PR text describing the final behavior, attribution/permission limits, test evidence, and
 remaining activation. For gh, use a body file for multiline PR text. Attach created PRs to
@@ -229,10 +238,11 @@ with the deterministic reviewed package before updating local publishedVersion a
 README/detail links. It does not publish or push. A missing/draft/prerelease or mismatched
 asset must leave the download pointer unchanged. Do not bypass a failed comparison manually.
 
-Commit these metadata/generated-page changes on a follow-up branch/PR and complete its
-checks/merge within existing publication authorization and repository protections. Until that
-PR merges, the default-branch catalog still points to the previous confirmed version (or
-shows Publication pending). State this accurately if work stops at a review boundary.
+Review and commit these metadata/generated-page changes, then push to main when permitted
+within existing publication authorization. Use a follow-up PR only when required by rules
+or explicit user direction. Until this catalog commit reaches the default branch, the live
+catalog still points to the previous confirmed version (or shows Publication pending).
+State this accurately if work stops at a review boundary.
 Do not call the catalog update complete based only on a modified local file.
 
 Use the canonical per-skill direct URL generated from tag and filename. Never use a global
@@ -261,7 +271,15 @@ the user's language; keep repository and public GitHub content English.
 - Inspect input without execution; preserve originals and unrelated edits.
 - Prepare validated package, honest metadata, attribution, and practical usage examples.
 - Generate/check/build; verify exact bytes, fingerprint, manifest, checksum, and scope.
-- Commit/push/PR/merge only within authorization and required reviews; monitor CI.
+- Prefer the primary checkout/main; commit and push within authorization, using a PR only
+  when required by protection or the user. Monitor CI and preserve required reviews.
 - Publish the accepted commit through the permitted path; never overwrite public versions.
 - Verify external ZIP/checksum, confirm publication, and land the per-skill download update.
 - Report concrete links and remaining limits; never claim pending changes are live.
+
+## Manual counterpart
+
+When the user requests a human-operated workflow, link to the
+[manual publishing guide](../docs/MANUAL_PUBLISHING.md). It uses the same validator, metadata,
+release conventions, and explicit post-publication catalog confirmation. Follow the user's
+requested pace instead of performing publication steps they want to do themselves.

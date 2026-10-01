@@ -36,5 +36,6 @@ Download links are derived from the skill ID and `publishedVersion`, using GitHu
 link is used. Bumping `version` leaves the previous `publishedVersion` in place; a pending
 version cannot produce a premature download link. After publishing, run
 `python tools/catalog.py confirm-publication <id>` and commit its metadata/generated-page
-changes in a follow-up PR. This read-only GitHub check verifies the public stable release,
+changes to main where permitted, or through a PR when required. This read-only GitHub check
+verifies the public stable release,
 ZIP bytes, and checksum against the reviewed current package before changing local links.

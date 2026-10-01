@@ -39,3 +39,8 @@ then run `python tools/catalog.py generate`, `python -m unittest discover -s tes
 do not commit `dist/`, original ZIPs, reports with private paths, or backups.
 Use a new X.Y.Z version for changed released content. Maintainers review both content
 and permissions before merging. Do not edit workflow code as part of an ordinary skill submission.
+
+## Manual walkthrough
+
+For a browser-only submission or the complete maintainer path without an AI agent, use
+[Add and publish a skill manually](docs/MANUAL_PUBLISHING.md).
