@@ -20,7 +20,7 @@ BEGIN, END = '<!-- catalog:start -->', '<!-- catalog:end -->'
 
 def text(value):
     require(isinstance(value, str) and value.strip() and len(value) <= 4000 and not re.search(r'[\x00-\x1f\x7f]', value), 'Expected nonempty single-line text')
-    require(not re.search(r'[A-Za-z]:[\\/]|/Users/|/home/', value), 'Private path in metadata')
+    require(not re.search(r'(?<![A-Za-z0-9])[A-Za-z]:[\\/]|/Users/|/home/', value), 'Private path in metadata')
     return value
 
 

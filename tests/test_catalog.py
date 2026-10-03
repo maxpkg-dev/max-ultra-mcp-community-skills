@@ -196,6 +196,14 @@ class CatalogTests(unittest.TestCase):
         catalog.generate(self.root)
         catalog.generate(self.root, check=True)
 
+    def test_public_author_url_is_accepted_without_allowing_private_drive_paths(self):
+        profile = {'name': 'Yuriy Bobak', 'profile': 'https://bobak.studio/'}
+        catalog.person(profile)
+        self.assertEqual(catalog.credit(profile), '[Yuriy Bobak](https://bobak.studio/)')
+        for private in ['C:/private/file', 'See C:/private/file', 'See C:\\private\\file']:
+            with self.subTest(private=private), self.assertRaises(ValueError):
+                catalog.text(private)
+
     def test_catalog_escapes_untrusted_text(self):
         value = catalog.escape('<script>|[fake](bad)')
         self.assertNotIn('<script>', value)

@@ -6,7 +6,7 @@
 
 | Skill | Author | Category | Purpose | Version | Verification | Download |
 | --- | --- | --- | --- | --- | --- | --- |
-| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | Yuriy Bobak | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
+| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | [Yuriy Bobak](https://bobak.studio/) | Architectural visualization | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | discovery-reported | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
 
 <!-- catalog:end -->
 
