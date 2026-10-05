@@ -244,10 +244,10 @@ Content fingerprint: `{fingerprint(files)}`.
 
 def generated(root=ROOT):
     records = load(root)
-    rows = ['| Skill | Author | Category | Purpose | Version | Verification | Download |', '| --- | --- | --- | --- | --- | --- | --- |']
+    rows = ['| Skill | Author | Purpose | Version | Download |', '| --- | --- | --- | --- | --- |']
     output = {}
     for m, files in records:
-        rows.append(f"| [{escape(m['title'])}](docs/skills/{m['id']}.md) | {credit(m['author'])} | {escape(m['category'])} | {escape(m['purpose'])} | {m['version']} | {m['verification']['level']} | {download_link(m)} |")
+        rows.append(f"| [{escape(m['title'])}](docs/skills/{m['id']}.md) | {credit(m['author'])} | {escape(m['purpose'])} | {m['version']} | {download_link(m)} |")
         output[root / 'docs' / 'skills' / (m['id'] + '.md')] = detail(m, files)
     readme = (root / 'README.md').read_text(encoding='utf-8')
     require(readme.count(BEGIN) == readme.count(END) == 1, 'README catalog markers missing/duplicated')
