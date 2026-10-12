@@ -3,9 +3,9 @@ name: archviz-master-yuriy-bobak
 description: Yuriy Bobak - Guide architectural render critique, composition, mood design, and production planning; apply scoped artistic direction to authorized 3ds Max work through Max Ultra MCP, with Corona, ForestPack, and RailClone references. Use for ArchViz artistic decisions, not unrelated modeling or software setup.
 ---
 
-# ArchViz Master (Yuriy Bobak)
+# ArchViz Master
 
-Version 1.2.1.
+By Yuriy Bobak. Version 1.2.3.
 
 ## Intended result
 Produce clear artistic diagnoses, prioritized improvements, and task-specific production plans for exterior/interior stills and animation. Connect the existing Artists' Master Series knowledge to software implementation while keeping their evidence separate.

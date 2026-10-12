@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "archviz-master-yuriy-bobak",
-  "title": "ArchViz Master (Yuriy Bobak)",
-  "version": "1.2.2",
+  "title": "ArchViz Master",
+  "version": "1.2.3",
   "publishedVersion": "1.2.2",
   "category": "Architectural visualization",
   "purpose": "Architectural render critique, composition, mood design, and production planning.",
@@ -42,9 +42,9 @@
     "adaptation": "The user authorized preparation of this adapted package. No general modification right, sublicensing grant, or open-source license is asserted.",
     "evidence": "User-reported permission; an independent written license was not inspected. See package/references/provenance-and-distribution.md."
   },
-  "provenance": "Prepared ArchViz Master 1.2.1 distribution, retaining Yuriy Bobak attribution and the source package's historical evidence. Book references are selective summaries and production interpretations; no source books, scans, artwork, or licensed plugin assets are bundled. Version 1.2.2 adds skill.json display metadata; existing instructions and references are unchanged.",
+  "provenance": "Prepared ArchViz Master 1.2.1 distribution, retaining Yuriy Bobak attribution and the source package's historical evidence. Book references are selective summaries and production interpretations; no source books, scans, artwork, or licensed plugin assets are bundled. Version 1.2.2 adds skill.json display metadata; existing instructions and references are unchanged. Version 1.2.3 simplifies the display title to ArchViz Master and keeps Yuriy Bobak as a separate author credit.",
   "submission": null,
-  "packageSha256": "01e1e28ba7f46275040f4e0ac48d87a682d527dcabd87c13edd4d97d3860dd13",
+  "packageSha256": "ad94412b6e3f25704523f3b426c545932a1167408fca536afe8dc19a8cc39dca",
   "publishedPackage": {
     "id": "archviz-master-yuriy-bobak",
     "name": "archviz-master-yuriy-bobak",
