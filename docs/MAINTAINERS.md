@@ -17,6 +17,11 @@ does not use `pull_request_target` or a privileged `workflow_run` artifact hando
 
 ## Accept a submission
 
+For display metadata, follow [PACKAGE_METADATA.md](PACKAGE_METADATA.md). Synchronize
+`skill.json` from the catalog record with `sync-manifest <id>` after reviewing the version.
+Keep permissions and verification outside the manifest; adding or changing it changes
+release bytes and requires a new version for an already published package.
+
 1. Read the issue and identify author, submitter, source, dependencies, permission basis,
    and requested adaptation rights. Ask for missing facts in the issue through your own
    normal moderation process. Do not infer rights or testing from a checkbox.

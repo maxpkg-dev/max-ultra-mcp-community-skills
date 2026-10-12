@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "title": "3D Floor Plan from Drawing",
+  "description": "Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP.",
+  "author": "Mykhailo Svidryk",
+  "version": "1.0.1",
+  "source": "Community Skills"
+}

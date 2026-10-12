@@ -125,6 +125,7 @@ The importable package has this layout; references and assets are optional:
 
 ```text
 SKILL.md
+skill.json
 references/
   workflow.md
 assets/
@@ -145,7 +146,11 @@ Explain the intended task, required inputs, workflow, and limits here.
 ```
 
 The real machine name must match your ID. A ZIP can have this root or one enclosing folder.
-Use only allowed text under `references/` and images under `assets/`; no extra root files,
+`skill.json` is optional for legacy imports and included in current catalog packages.
+Use the [display metadata template](PACKAGE_METADATA.md), with the author as a string.
+After editing catalog metadata and reviewing the version, run
+`python tools/catalog.py sync-manifest <id>` before final inspection and generation.
+Use only allowed text under `references/` and images under `assets/`; no other root files,
 scripts, linked files, or nested archives. Consult [VALIDATION.md](VALIDATION.md) for the
 canonical file types, frontmatter rules, and size limits instead of guessing a layout.
 

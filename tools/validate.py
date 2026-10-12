@@ -11,7 +11,7 @@ import posixpath
 import re
 import stat
 import struct
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 import zipfile
 
 MIB = 1024 * 1024
@@ -19,6 +19,42 @@ MAX_FILES, MAX_TOTAL, MAX_ZIP = 200, 50 * MIB, 54 * MIB
 NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 TEXT = {'.md', '.txt', '.json', '.csv'}
 IMAGES = {'.png', '.jpg', '.jpeg', '.webp'}
+MANIFEST_LIMITS = {'title': 160, 'description': 1024, 'author': 256, 'version': 64, 'source': 160, 'website': 2048, 'email': 254}
+
+
+def package_metadata(data):
+    require(len(data) <= 8192, 'skill.json size limit')
+    value = json.loads(data.decode('utf-8-sig'))
+    require(isinstance(value, dict) and type(value.get('schemaVersion')) in (int, float)
+            and value['schemaVersion'] == 1 and set(value) <= {'schemaVersion', *MANIFEST_LIMITS},
+            'Unsupported skill.json schema or field')
+    for key, limit in MANIFEST_LIMITS.items():
+        if key in value:
+            item = value[key]
+            require(isinstance(item, str) and item.strip()
+                    and len(item.encode('utf-16-le')) // 2 <= limit
+                    and not re.search(r'[\x00-\x1f\x7f]', item), 'Invalid skill.json ' + key)
+    if 'version' in value:
+        require(re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', value['version']),
+                'skill.json version must be MAJOR.MINOR.PATCH')
+    if 'website' in value:
+        address = value['website']
+        parsed = urlsplit(address)
+        require(re.match(r'^https://', address, re.I) and not re.search(r'[\s\\]', address)
+                and parsed.scheme == 'https' and parsed.hostname and not parsed.username and not parsed.password,
+                'skill.json website must be HTTPS without credentials')
+        # Accessing port also rejects malformed/out-of-range ports.
+        parsed.port
+    if 'email' in value:
+        parts = value['email'].split('@')
+        require(len(parts) == 2, 'skill.json email must be one plain address')
+        local, domain = parts
+        require(re.fullmatch(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+", local)
+                and len(local) <= 64 and not re.search(r'^\.|\.$|\.\.', local)
+                and len(domain.split('.')) >= 2
+                and all(re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', label) for label in domain.split('.')),
+                'skill.json email must be one plain address')
+    return value
 
 
 def require(condition, message):
@@ -69,6 +105,8 @@ def frontmatter(data):
 
 
 def limit_for(name):
+    if name == 'skill.json':
+        return 8192
     if name == 'SKILL.md':
         return 64 * 1024
     extension = Path(name).suffix.lower()
@@ -112,6 +150,8 @@ def validate_files(files):
                     require(not re.search(r'^[/\\]|[:\\]', link), 'Reference escapes package')
                     target = safe_path(posixpath.normpath(posixpath.join(posixpath.dirname(name), link)))
                     require(target in files, 'Missing relative reference: ' + target)
+    if 'skill.json' in files:
+        package_metadata(files['skill.json'])
     return frontmatter(files['SKILL.md'])
 
 

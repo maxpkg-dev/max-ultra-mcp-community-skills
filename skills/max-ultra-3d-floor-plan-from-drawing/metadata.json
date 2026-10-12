@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "max-ultra-3d-floor-plan-from-drawing",
   "title": "3D Floor Plan from Drawing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publishedVersion": "1.0.0",
   "category": "Modeling",
   "purpose": "Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP.",
@@ -30,7 +30,8 @@
   "dependencies": [
     "For geometry creation: Autodesk 3ds Max with Max Ultra MCP connected to the intended scene and tools for spline, modifier, and scene inspection operations.",
     "An existing architectural drawing, a known dimension with units, and confirmed wall, slab, opening, and level dimensions. An AI client with image input is needed for screenshot-based ambiguity review.",
-    "Uses native spline, Extrude, and Edit Poly workflows; no third-party renderer or modeling plugin is specified."
+    "Uses native spline, Extrude, and Edit Poly workflows; no third-party renderer or modeling plugin is specified.",
+    "This package includes skill.json and requires an updated Max Ultra MCP build supporting display metadata. As of 2026-10-12, the compatible product implementation is tested but not yet released; earlier numbered skill releases remain available for older importers."
   ],
   "testedVersions": [],
   "verification": {
@@ -42,7 +43,7 @@
     "adaptation": "The user reports author permission for necessary compatibility adaptation. This preparation changes the machine name and public heading and adds attribution and an evidence clarification while preserving the substantive modeling method. No general modification or sublicensing grant is asserted.",
     "evidence": "Permission reported by the user on 2026-10-12; no independent written permission or open-source license was inspected."
   },
-  "provenance": "Prepared from the owner-supplied max-ultra-wall-shell ZIP, containing SKILL.md and references/demonstration.md. The original archive is preserved. The demonstration reference remains byte-identical; source observations and project-specific values are not new verification claims. No author profile, submitter identity, or practical reviewer is established.",
+  "provenance": "Prepared from the owner-supplied max-ultra-wall-shell ZIP, containing SKILL.md and references/demonstration.md. The original archive is preserved. The demonstration reference remains byte-identical; source observations and project-specific values are not new verification claims. No author profile, submitter identity, or practical reviewer is established. Version 1.0.1 adds skill.json display metadata; existing instructions and references are unchanged.",
   "submission": null,
-  "packageSha256": "d1480a01947d5863e2d0fc56711e40087f51cba6088fb3f37e8829be57e5944d"
+  "packageSha256": "d39688c250e76954f23f1a678761aa5b5caf15abf714a6948f817a9dbef72c3c"
 }

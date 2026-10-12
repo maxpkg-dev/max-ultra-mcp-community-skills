@@ -21,13 +21,19 @@ Include exactly one `SKILL.md` at ZIP root or within one enclosing folder.
 Its frontmatter contains only single-line `name` and `description`. Use a lowercase
 hyphenated machine name up to 64 characters. Put MD/TXT/JSON/CSV references under
 `references/` and PNG/JPG/JPEG/WebP images under `assets/`.
-No scripts, extra root files, nested archives, symbolic links, or client configuration.
+Add optional root `skill.json` for display metadata; see the [format and template](docs/PACKAGE_METADATA.md).
+New catalog packages should fill title, description, author, version, and source. The catalog
+uses the declared source label `Community Skills`, independently of the Custom/Built-in type. Legacy ZIPs without
+it are still accepted for review. No scripts, other root files, nested archives, symbolic links, or client configuration.
+Optional website and email must be established public author contacts; omit unknown values.
 See [all limits](docs/VALIDATION.md).
 
 ## Pull requests
 
 Experienced contributors can create `skills/<id>/metadata.json` and `skills/<id>/package/`
 directly. Include practical usage steps, example requests, and expected output in metadata.
+Run `python tools/catalog.py sync-manifest <id>` after writing or changing display fields
+and reviewing the version; this synchronizes `skill.json` and the package fingerprint.
 Set `publishedVersion` to null for a new skill; retain the previous value when preparing
 an update until its new release is public and confirmed. Use [the metadata guide](docs/METADATA.md); unknown author profiles or review
 identities stay `null`. Link the submission issue if one exists.

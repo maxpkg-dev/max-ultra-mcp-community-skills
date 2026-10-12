@@ -2,12 +2,14 @@
 
 `tools/validate.py` independently implements the public instruction-only import contract
 observed in Max Ultra MCP's `core/skill-store.js`, `core/skill-zip.js`,
-`docs/CUSTOM_SKILLS.html`, and `docs/SUBMIT_SKILL.html` on 2026-10-01.
+`docs/CUSTOM_SKILLS.html`, and `docs/SUBMIT_SKILL.html` on 2026-10-01, with the optional
+`skill.json` display-metadata extension inspected in `core/skill-store.js` on 2026-10-12.
 The product implementation credits Lukianenko Vasyl / 3DGROUND. No product source is
 vendored and this repository has no runtime dependency on a product checkout.
 
 Limits: 200 files, 50 MiB expanded, 54 MiB ZIP, 64 KiB SKILL.md, 1 MiB per supporting
-text file, and 5 MiB per image. Only STORE and DEFLATE classic unencrypted ZIPs are
+text file, 8192 bytes for optional root `skill.json`, and 5 MiB per image. See the
+[display-metadata schema](PACKAGE_METADATA.md). Only STORE and DEFLATE classic unencrypted ZIPs are
 accepted. ZIP64, split archives, duplicate/case-conflicting paths, special files,
 symlinks/reparse points, path escapes, unexpected roots, and unsupported files fail.
 Folder depth and UTF-8 text are checked. Relative Markdown links must resolve inside
@@ -23,7 +25,8 @@ human review. Structural validation never grants permissions or proves practical
 Input ZIPs are validated in memory before staging. They are never executed. Extraction
 writes only validated files into a new destination. Deterministic release ZIPs use fixed
 timestamps, sorted paths, fixed permissions, and STORE compression so runtime compressor
-versions cannot alter bytes. Metadata, generated docs, and review notes are excluded.
+versions cannot alter bytes. External catalog metadata, generated docs, and review notes
+are excluded; the supported `skill.json` display manifest is included.
 
 ## GitHub schema references
 

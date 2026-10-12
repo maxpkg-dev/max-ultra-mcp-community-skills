@@ -2,6 +2,13 @@
 
 One `skills/<id>/metadata.json` drives the README row and detail page. Validation rejects unknown or missing fields. Use the initial skill's metadata as a concrete example; replace its attribution and evidence rather than copying claims.
 
+The same record supplies the import package's `skill.json`: title, purpose as description,
+author.name as author, version, and the fixed source label `Community Skills`.
+Known author.profile and optional author.email supply website and email; unknown contacts are omitted.
+Use `sync-manifest <id>` after a reviewed change;
+validation rejects drift. See [package display metadata](PACKAGE_METADATA.md) for the
+template, limits, legacy compatibility, and versioning rules.
+
 | Field | Meaning |
 | --- | --- |
 | schemaVersion | Integer `1` |
@@ -12,7 +19,7 @@ One `skills/<id>/metadata.json` drives the README row and detail page. Validatio
 | category | Architectural visualization, Modeling, Materials, Lighting, Cameras, Scene preparation, or Other |
 | purpose | Concise description of the outcome |
 | usage | Object with nonempty `steps` and `examples` arrays (up to 10 each), plus `expectedOutput`; generates the How to use section |
-| author | Object with `name` and HTTPS `profile` (or null profile) |
+| author | Object with `name`, HTTPS `profile` (or null profile), and optional public `email`; omit unknown email |
 | submitter / reviewer | Same person object, or null if identity is not recorded; never infer from the author |
 | dependencies | Array of explicit requirements and conditional plugin requirements |
 | testedVersions | Array of actual software/version tests; empty when untested |

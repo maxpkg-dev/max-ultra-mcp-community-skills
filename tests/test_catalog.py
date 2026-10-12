@@ -39,6 +39,38 @@ class PackageTests(unittest.TestCase):
         data = b'\xef\xbb\xbf---\r\nname: "sample"\r\ndescription: \'Author: a \'\'sample\'\'\'\r\n---\r\nBody'
         self.assertEqual(v.frontmatter(data)['description'], "Author: a 'sample'")
 
+    def test_display_manifest_roundtrip_and_legacy(self):
+        manifest = {'schemaVersion': 1, 'title': 'Sample', 'description': 'Display description', 'author': 'Author', 'version': '1.0.0', 'source': 'Community Skills'}
+        files = {**MINIMAL, 'skill.json': json.dumps(manifest).encode()}
+        for prefix in ['', 'sample/']:
+            self.assertEqual(v.read_zip(self.archive([(prefix + k, b) for k, b in files.items()])), files)
+        self.assertEqual(v.package_metadata(files['skill.json']), manifest)
+        self.assertEqual(v.package_metadata(b'{"schemaVersion":1}'), {'schemaVersion': 1})
+        self.assertEqual(v.validate_files(files), v.validate_files(MINIMAL))
+
+    def test_display_manifest_rejects_invalid_values(self):
+        for value in [[], None, {'schemaVersion': True}, {'schemaVersion': 2}, {'schemaVersion': 1, 'unknown': 'x'},
+                      *({'schemaVersion': 1, key: val} for key in v.MANIFEST_LIMITS for val in [None, 3, '', ' ', 'a\nb', 'x' * (v.MANIFEST_LIMITS[key] + 1)]),
+                      *({'schemaVersion': 1, 'version': val} for val in ['01.0.0', '1.0', '1.0.0-beta', '1.0.0+build'])]:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                v.validate_files({**MINIMAL, 'skill.json': json.dumps(value).encode()})
+        for data in [b'\xff', b'{', b' ' * 8193]:
+            with self.assertRaises(ValueError):
+                v.validate_files({**MINIMAL, 'skill.json': data})
+        with self.assertRaises(ValueError):
+            v.package_metadata(json.dumps({'schemaVersion': 1, 'title': '\U0001f600' * 81}).encode())
+
+    def test_optional_contact_metadata(self):
+        valid = {'schemaVersion': 1, 'website': 'https://bobak.studio/', 'email': 'author+skills@example.org'}
+        self.assertEqual(v.package_metadata(json.dumps(valid).encode()), valid)
+        for key, values in {
+            'website': ['http://example.org', 'javascript:alert(1)', 'https://user:pass@example.org', 'https://example.org/a b', 'https://example.org\\path', 'https://', 'https://example.org:99999'],
+            'email': ['mailto:a@example.org', 'a@example.org?subject=test', 'Name <a@example.org>', 'a@localhost', '.a@example.org', 'a..b@example.org', 'a@-example.org', 'a@ex_ample.org', 'a@b@example.org', 'x' * 65 + '@example.org'],
+        }.items():
+            for value in values:
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    v.package_metadata(json.dumps({'schemaVersion': 1, key: value}).encode())
+
     def test_frontmatter_rejects_extra_duplicate_multiline_and_invalid_name(self):
         for header in ['name: sample\ndescription: Test\nlicense: MIT', 'name: sample\nname: sample\ndescription: Test', 'name: Sample\ndescription: Test', 'name: sample\ndescription: |\n  Text', 'name: sample\ndescription: {bad}', 'name: sample\ndescription: "bad\\ntext"']:
             with self.subTest(header=header), self.assertRaises(ValueError):
@@ -190,9 +222,12 @@ class CatalogTests(unittest.TestCase):
             path.write_text(json.dumps({**original, **change}), encoding='utf-8')
             with self.subTest(change=change), self.assertRaises(ValueError):
                 catalog.load(self.root)
-        path.write_text(json.dumps({**original, 'purpose': 'New purpose'}), encoding='utf-8')
+        version = original['version'].split('.')
+        version[-1] = str(int(version[-1]) + 1)
+        path.write_text(json.dumps({**original, 'purpose': 'New purpose', 'version': '.'.join(version)}), encoding='utf-8')
         with self.assertRaises(ValueError):
             catalog.generate(self.root, check=True)
+        catalog.sync_manifest(original['id'], self.root)
         catalog.generate(self.root)
         catalog.generate(self.root, check=True)
 
@@ -295,9 +330,34 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(hashlib.sha256(data).hexdigest(), first[0]['sha256'])
         files = v.read_zip(self.root / 'dist' / first[0]['asset'])
-        self.assertEqual(len(files), 84)
+        self.assertEqual(len(files), len(catalog.load(self.root)[0][1]))
+        self.assertIn('skill.json', files)
         self.assertNotIn('metadata.json', files)
         self.assertNotIn('README.md', files)
+
+    def test_manifest_sync_rejects_drift_and_published_mutation(self):
+        m, files = catalog.load(self.root)[0]
+        path = self.root / 'skills' / m['id'] / 'metadata.json'
+        m['author']['name'] = 'Updated author'
+        m['author']['email'] = 'author@example.org'
+        version = m['version'].split('.')
+        version[-1] = str(int(version[-1]) + 1)
+        m['version'] = '.'.join(version)
+        path.write_text(json.dumps(m), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'differs from catalog'):
+            catalog.load(self.root)
+        catalog.sync_manifest(m['id'], self.root)
+        updated, updated_files = catalog.load(self.root)[0]
+        self.assertEqual(v.package_metadata(updated_files['skill.json']), catalog.display_manifest(updated))
+        self.assertEqual(v.package_metadata(updated_files['skill.json'])['email'], 'author@example.org')
+        self.assertEqual({k: b for k, b in files.items() if k != 'skill.json'}, {k: b for k, b in updated_files.items() if k != 'skill.json'})
+        updated['publishedVersion'] = updated['version']
+        updated['title'] = 'Changed published title'
+        path.write_text(json.dumps(updated), encoding='utf-8')
+        before = (path.parent / 'package/skill.json').read_bytes()
+        with self.assertRaisesRegex(ValueError, 'Bump version'):
+            catalog.sync_manifest(m['id'], self.root)
+        self.assertEqual((path.parent / 'package/skill.json').read_bytes(), before)
 
 
 class FakeAPI:

@@ -58,7 +58,7 @@ body:
     id: package
     attributes:
       label: Skill ZIP
-      description: One skill per ZIP. GitHub uploads support archives up to 25 MB; use the link field for larger packages within the 54 MiB importer limit.
+      description: One skill per ZIP. Include skill.json beside SKILL.md for title, description, author, version, and declared source (see docs/PACKAGE_METADATA.md); legacy ZIPs remain reviewable. GitHub uploads support archives up to 25 MB; use the link field for larger packages within the 54 MiB importer limit.
     validations:
       required: false
       accept: ".zip"

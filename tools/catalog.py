@@ -10,7 +10,7 @@ from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from validate import MAX_ZIP, NAME, fingerprint, frontmatter, no_links, package_bytes, read_folder, read_zip, require
+from validate import MAX_ZIP, NAME, fingerprint, frontmatter, no_links, package_bytes, package_metadata, read_folder, read_zip, require, validate_files
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = 'https://github.com/maxpkg-dev/max-ultra-mcp-community-skills'
@@ -31,14 +31,19 @@ def url(value):
     require(parsed.scheme == 'https' and parsed.hostname and not parsed.username and not re.search(r'[\s<>"()]', value), 'Expected public HTTPS URL')
 
 
-def person(value):
-    require(isinstance(value, dict) and set(value) == {'name', 'profile'}, 'Person needs name and profile')
+def person(value, allow_email=False):
+    require(isinstance(value, dict) and {'name', 'profile'} <= set(value)
+            and set(value) <= ({'name', 'profile', 'email'} if allow_email else {'name', 'profile'}),
+            'Person needs name and profile; only author may include email')
     text(value['name'])
     url(value['profile'])
+    if 'email' in value:
+        package_metadata(json.dumps({'schemaVersion': 1, 'email': value['email']}).encode('utf-8'))
 
 
-def metadata(path, files):
-    m = json.loads(no_links(path).read_text(encoding='utf-8'))
+def metadata(path, files, m=None):
+    if m is None:
+        m = json.loads(no_links(path).read_text(encoding='utf-8'))
     keys = {'schemaVersion', 'id', 'title', 'version', 'publishedVersion', 'category', 'purpose', 'usage', 'author', 'submitter', 'reviewer', 'dependencies', 'testedVersions', 'verification', 'terms', 'provenance', 'submission', 'packageSha256'}
     require(set(m) == keys and m['schemaVersion'] == 1, 'Unknown/missing metadata fields')
     require(NAME.fullmatch(m['id']) and len(m['id']) <= 64 and m['id'] == path.parent.name, 'Metadata ID mismatch')
@@ -56,7 +61,7 @@ def metadata(path, files):
         for value in m['usage'][key]:
             text(value)
     text(m['usage']['expectedOutput'])
-    person(m['author'])
+    person(m['author'], allow_email=True)
     for key in ('submitter', 'reviewer'):
         if m[key] is not None:
             person(m[key])
@@ -74,7 +79,40 @@ def metadata(path, files):
     for value in m['terms'].values():
         text(value)
     require(m['packageSha256'] == fingerprint(files), 'Package changed: review content, bump version if released, and refresh packageSha256')
+    if 'skill.json' in files:
+        require(package_metadata(files['skill.json']) == display_manifest(m),
+                'skill.json differs from catalog metadata; review version and run sync-manifest')
     return m
+
+
+def display_manifest(m):
+    result = {'schemaVersion': 1, 'title': m['title'], 'description': m['purpose'],
+              'author': m['author']['name'], 'version': m['version'], 'source': 'Community Skills'}
+    if m['author']['profile'] is not None:
+        result['website'] = m['author']['profile']
+    if 'email' in m['author']:
+        result['email'] = m['author']['email']
+    return result
+
+
+def sync_manifest(skill_id, root=ROOT):
+    require(NAME.fullmatch(skill_id) and len(skill_id) <= 64, 'Invalid skill ID')
+    path = no_links(root / 'skills' / skill_id / 'metadata.json')
+    original_bytes = path.read_bytes()
+    m = json.loads(original_bytes.decode('utf-8'))
+    files = read_folder(path.parent / 'package')
+    data = (json.dumps(display_manifest(m), indent=2, ensure_ascii=False) + '\n').encode('utf-8')
+    package_metadata(data)
+    if files.get('skill.json') != data:
+        require(m['publishedVersion'] != m['version'], 'Bump version before changing a published package')
+    files['skill.json'] = data
+    m['packageSha256'] = fingerprint(files)
+    # Validate the entire proposed metadata/package before writing either file.
+    validate_files(files)
+    metadata(path, files, m)
+    require(path.read_bytes() == original_bytes, 'Metadata changed during synchronization')
+    (path.parent / 'package' / 'skill.json').write_bytes(data)
+    path.write_text(json.dumps(m, indent=2, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
 
 
 def load(root=ROOT):
@@ -319,10 +357,15 @@ def main():
     staging = commands.add_parser('stage')
     staging.add_argument('zip', type=Path)
     staging.add_argument('destination', type=Path)
+    syncing = commands.add_parser('sync-manifest', help='Sync skill.json from catalog fields after reviewing the version')
+    syncing.add_argument('skill_id')
     confirmation = commands.add_parser('confirm-publication', help='Verify a public release and update local download links; does not publish or push')
     confirmation.add_argument('skill_id')
     args = parser.parse_args()
-    if args.command == 'validate':
+    if args.command == 'sync-manifest':
+        sync_manifest(args.skill_id)
+        print('Synchronized skill.json and package fingerprint; review and regenerate catalog pages')
+    elif args.command == 'validate':
         print(f'Validated {len(load())} skill(s)')
     elif args.command in ('generate', 'check'):
         generate(check=args.command == 'check')

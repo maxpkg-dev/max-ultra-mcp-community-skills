@@ -6,8 +6,8 @@
 
 | Skill | Author | Purpose | Version | Download |
 | --- | --- | --- | --- | --- |
-| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | [Yuriy Bobak](https://bobak.studio/) | Architectural render critique, composition, mood design, and production planning. | 1.2.1 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
-| [3D Floor Plan from Drawing](docs/skills/max-ultra-3d-floor-plan-from-drawing.md) | Mykhailo Svidryk | Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP. | 1.0.0 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-latest/max-ultra-3d-floor-plan-from-drawing-latest-max-ultra-mcp.zip) |
+| [ArchViz Master \(Yuriy Bobak\)](docs/skills/archviz-master-yuriy-bobak.md) | [Yuriy Bobak](https://bobak.studio/) | Architectural render critique, composition, mood design, and production planning. | 1.2.2 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
+| [3D Floor Plan from Drawing](docs/skills/max-ultra-3d-floor-plan-from-drawing.md) | Mykhailo Svidryk | Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP. | 1.0.1 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-latest/max-ultra-3d-floor-plan-from-drawing-latest-max-ultra-mcp.zip) |
 
 <!-- catalog:end -->
 
@@ -65,7 +65,10 @@ Inclusion in this catalog does not assign a common license to all skills.
 ## Maintainers
 
 Each `skills/<id>/metadata.json` is the catalog source for its skill. Package
-instructions live in `skills/<id>/package/`; catalog metadata stays outside ZIPs.
+instructions live in `skills/<id>/package/`; full catalog metadata stays outside ZIPs.
+The portable [`skill.json` display manifest](docs/PACKAGE_METADATA.md) inside each current
+ZIP carries its title, description, author, version, and declared source `Community Skills`
+for compatible importers' About view.
 README catalog rows and [detail pages](docs/skills) are generated together.
 
 With Python 3.12 or later (package tools use the standard library; tests use pinned PyYAML):
