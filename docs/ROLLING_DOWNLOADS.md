@@ -23,6 +23,8 @@ Do not use repository-global `/releases/latest`: this catalog has independent sk
   skills, drafts, prereleases, and rolling tags cannot win the version selection.
 - Both confirm the external stable URL and update catalog metadata/generated pages using a
   normal catalog-only commit/push. No manual link maintenance or extra commit is normally needed.
+  This also records the verified package snapshot and regenerates `catalog.json` for
+  the [Community Skills install feed](CATALOG_FEED.md), using immutable numbered URLs.
   A rejected protected-branch push is reported, never bypassed. New entries become downloadable
   after this confirmation; existing stable URLs continue to work independently of metadata text.
 

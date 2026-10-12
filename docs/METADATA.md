@@ -28,6 +28,12 @@ template, limits, legacy compatibility, and versioning rules.
 | provenance | Source history and attribution limits, without local machine paths |
 | submission | Public HTTPS issue/PR URL or null for a prepared initial contribution |
 | packageSha256 | Content fingerprint printed by `inspect`; binds reviewed metadata to exact package bytes |
+| publishedPackage | Optional verified release snapshot for the install feed; written only by successful `confirm-publication`, not by hand |
+
+See [the install-feed schema](CATALOG_FEED.md). `publishedPackage` stores the published
+title, description, author, version, immutable URL, ZIP checksum and size separately
+from pending source metadata. A missing snapshot means the skill is omitted from the
+machine-readable feed until verified; existing human download links are unaffected.
 
 Verification levels are `package-validated`, `discovery-reported`, and `practically-tested`.
 All packages pass structural validation. Discovery is an attributed report of import/list

@@ -44,5 +44,16 @@
   },
   "provenance": "Prepared ArchViz Master 1.2.1 distribution, retaining Yuriy Bobak attribution and the source package's historical evidence. Book references are selective summaries and production interpretations; no source books, scans, artwork, or licensed plugin assets are bundled. Version 1.2.2 adds skill.json display metadata; existing instructions and references are unchanged.",
   "submission": null,
-  "packageSha256": "01e1e28ba7f46275040f4e0ac48d87a682d527dcabd87c13edd4d97d3860dd13"
+  "packageSha256": "01e1e28ba7f46275040f4e0ac48d87a682d527dcabd87c13edd4d97d3860dd13",
+  "publishedPackage": {
+    "id": "archviz-master-yuriy-bobak",
+    "name": "archviz-master-yuriy-bobak",
+    "title": "ArchViz Master (Yuriy Bobak)",
+    "description": "Architectural render critique, composition, mood design, and production planning.",
+    "author": "Yuriy Bobak",
+    "version": "1.2.2",
+    "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.2/archviz-master-yuriy-bobak-1.2.2-max-ultra-mcp.zip",
+    "sha256": "951e5a488134b7fb589fa23731e1ddc10b18c178f20116599d7dbabaf354092e",
+    "sizeBytes": 193446
+  }
 }

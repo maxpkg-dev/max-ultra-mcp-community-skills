@@ -274,6 +274,7 @@ class CatalogTests(unittest.TestCase):
         path = self.root / 'skills' / m['id'] / 'metadata.json'
         # Simulate a pending update that retains an earlier download.
         m['publishedVersion'] = '1.2.0'
+        m.pop('publishedPackage', None)
         path.write_text(json.dumps(m), encoding='utf-8')
         catalog.generate(self.root)
         catalog.confirm_publication(m['id'], self.root, fetch)
@@ -282,6 +283,11 @@ class CatalogTests(unittest.TestCase):
         link = catalog.download_url({**m, 'publishedVersion': m['version']})
         self.assertIn(link, (self.root / 'README.md').read_text(encoding='utf-8'))
         self.assertIn(link, (self.root / 'docs/skills' / (m['id'] + '.md')).read_text(encoding='utf-8'))
+        feed = json.loads((self.root / 'catalog.json').read_text(encoding='utf-8'))
+        entry = next(e for e in feed['skills'] if e['id'] == m['id'])
+        self.assertEqual(entry['sha256'], expected_hash)
+        self.assertEqual(entry['sizeBytes'], len(data))
+        self.assertIn('/' + catalog.tag_name(m) + '/', entry['downloadUrl'])
 
     def test_failed_confirmation_leaves_metadata_and_pages_unchanged(self):
         m, files = catalog.load(self.root)[0]
@@ -289,7 +295,7 @@ class CatalogTests(unittest.TestCase):
         data = v.package_bytes(files)
         checksum = f'{hashlib.sha256(data).hexdigest()}  {asset}\n'.encode()
         original_release = {'tag_name': catalog.tag_name(m), 'draft': False, 'prerelease': False, 'assets': [{'name': asset, 'state': 'uploaded'}, {'name': asset + '.sha256', 'state': 'uploaded'}]}
-        before = {p: p.read_bytes() for p in [self.root / 'README.md', self.root / 'skills' / m['id'] / 'metadata.json', self.root / 'docs/skills' / (m['id'] + '.md')]}
+        before = {p: p.read_bytes() for p in [self.root / 'catalog.json', self.root / 'README.md', self.root / 'skills' / m['id'] / 'metadata.json', self.root / 'docs/skills' / (m['id'] + '.md')]}
         for change in [{'draft': True}, {'prerelease': True}, {'assets': []}, {'tag_name': 'wrong'}, {'zip': b'wrong'}, {'checksum': b'wrong'}]:
             def fetch(address, limit):
                 if '/releases/tags/' in address:
@@ -334,6 +340,33 @@ class CatalogTests(unittest.TestCase):
         self.assertIn('skill.json', files)
         self.assertNotIn('metadata.json', files)
         self.assertNotIn('README.md', files)
+
+    def test_feed_excludes_unverified_and_preserves_published_snapshot(self):
+        m, files = catalog.load(self.root)[0]
+        path = self.root / 'skills' / m['id'] / 'metadata.json'
+        m.pop('publishedPackage', None)
+        path.write_text(json.dumps(m), encoding='utf-8')
+        catalog.generate(self.root)
+        self.assertNotIn(m['id'], [e['id'] for e in json.loads((self.root / 'catalog.json').read_text())['skills']])
+        m['publishedVersion'] = m['version']
+        m['publishedPackage'] = catalog.feed_entry(m, files)
+        published = copy.deepcopy(m['publishedPackage'])
+        parts = m['version'].split('.')
+        parts[-1] = str(int(parts[-1]) + 1)
+        m['version'] = '.'.join(parts)
+        m['title'] = 'Pending title'
+        path.write_text(json.dumps(m), encoding='utf-8')
+        catalog.sync_manifest(m['id'], self.root)
+        catalog.generate(self.root)
+        feed = json.loads((self.root / 'catalog.json').read_text())
+        self.assertEqual(next(e for e in feed['skills'] if e['id'] == m['id']), published)
+        original = json.loads(path.read_text())
+        for changes in [{'downloadUrl': 'https://example.org/evil.zip'}, {'sha256': 'bad'}, {'sizeBytes': True}, {'version': m['version']}, {'name': 'other'}, {'unexpected': 'field'}]:
+            invalid = copy.deepcopy(original)
+            invalid['publishedPackage'].update(changes)
+            path.write_text(json.dumps(invalid), encoding='utf-8')
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                catalog.load(self.root)
 
     def test_manifest_sync_rejects_drift_and_published_mutation(self):
         m, files = catalog.load(self.root)[0]

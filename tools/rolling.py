@@ -171,7 +171,7 @@ def accepted_commit(api, item, root=ROOT):
 
 def commit_catalog(api, ids, default, root=ROOT):
     """Publish only verified catalog metadata/pages, using a normal non-force push."""
-    paths = ['README.md'] + [p for skill in ids for p in (f'skills/{skill}/metadata.json', f'docs/skills/{skill}.md')]
+    paths = ['README.md', 'catalog.json'] + [p for skill in ids for p in (f'skills/{skill}/metadata.json', f'docs/skills/{skill}.md')]
     changed = git('diff', '--name-only', root=root).splitlines()
     require(set(changed) <= set(paths) and not git('diff', '--cached', '--name-only', root=root), 'Unexpected checkout changes; refusing catalog commit')
     if not changed:

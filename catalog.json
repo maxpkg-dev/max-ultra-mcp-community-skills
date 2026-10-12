@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "skills": [
+    {
+      "id": "archviz-master-yuriy-bobak",
+      "name": "archviz-master-yuriy-bobak",
+      "title": "ArchViz Master (Yuriy Bobak)",
+      "description": "Architectural render critique, composition, mood design, and production planning.",
+      "author": "Yuriy Bobak",
+      "version": "1.2.2",
+      "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.2/archviz-master-yuriy-bobak-1.2.2-max-ultra-mcp.zip",
+      "sha256": "951e5a488134b7fb589fa23731e1ddc10b18c178f20116599d7dbabaf354092e",
+      "sizeBytes": 193446
+    },
+    {
+      "id": "max-ultra-3d-floor-plan-from-drawing",
+      "name": "max-ultra-3d-floor-plan-from-drawing",
+      "title": "3D Floor Plan from Drawing",
+      "description": "Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP.",
+      "author": "Mykhailo Svidryk",
+      "version": "1.0.1",
+      "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-v1.0.1/max-ultra-3d-floor-plan-from-drawing-1.0.1-max-ultra-mcp.zip",
+      "sha256": "250a340a95c67b0b44add8b9d0d003f9bc4984a1670e8346ab98a6ce7e28a9c9",
+      "sizeBytes": 20752
+    }
+  ]
+}

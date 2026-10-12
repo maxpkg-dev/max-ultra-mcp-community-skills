@@ -87,6 +87,10 @@ assets, wait for the download-refresh check. No manual URL or metadata update is
 Do not publish an unaccepted version or omit its checksum. Unknown/nonmatching releases are
 ignored; inconsistent or immutable alias state fails without overwriting numbered releases.
 
+Successful confirmation also updates `publishedPackage` and the generated root
+`catalog.json` install feed. Never populate that evidence manually. Pending source
+updates retain their old verified feed entry. See [CATALOG_FEED.md](CATALOG_FEED.md).
+
 The download updater uses a normal catalog-only commit and non-force push. If repository
 protection requires a review, the push fails rather than bypassing it; complete that required
 review for metadata and inspect the reported failure. A previously active stable URL can

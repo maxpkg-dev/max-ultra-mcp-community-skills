@@ -235,12 +235,13 @@ class RollingTests(unittest.TestCase):
         api = type('API', (), {'base': 'https://api.github.com/repos/test/repo', 'token': 'dummy'})()
         def git(*args, **kwargs):
             calls.append((args, kwargs))
-            return 'README.md' if args == ('diff', '--name-only') else ''
+            return 'README.md\ncatalog.json' if args == ('diff', '--name-only') else ''
         with patch.object(rolling, 'git', side_effect=git):
             rolling.commit_catalog(api, ['sample'], 'main')
         push = next((args, kwargs) for args, kwargs in calls if args[0] == 'push')
         self.assertEqual(push[0], ('push', 'https://github.com/test/repo.git', 'HEAD:refs/heads/main'))
         self.assertNotIn('dummy', str(push[0]))
+        self.assertIn('catalog.json', next(args for args, _ in calls if args[0] == 'add'))
         with patch.object(rolling, 'git', return_value='tools/changed.py'), self.assertRaises(ValueError):
             rolling.commit_catalog(api, ['sample'], 'main')
 

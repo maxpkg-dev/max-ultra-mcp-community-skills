@@ -45,7 +45,7 @@ def metadata(path, files, m=None):
     if m is None:
         m = json.loads(no_links(path).read_text(encoding='utf-8'))
     keys = {'schemaVersion', 'id', 'title', 'version', 'publishedVersion', 'category', 'purpose', 'usage', 'author', 'submitter', 'reviewer', 'dependencies', 'testedVersions', 'verification', 'terms', 'provenance', 'submission', 'packageSha256'}
-    require(set(m) == keys and m['schemaVersion'] == 1, 'Unknown/missing metadata fields')
+    require(keys <= set(m) <= keys | {'publishedPackage'} and m['schemaVersion'] == 1, 'Unknown/missing metadata fields')
     require(NAME.fullmatch(m['id']) and len(m['id']) <= 64 and m['id'] == path.parent.name, 'Metadata ID mismatch')
     require(frontmatter(files['SKILL.md'])['name'] == m['id'], 'Frontmatter ID mismatch')
     require(re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', m['version']), 'Use stable X.Y.Z version')
@@ -82,7 +82,34 @@ def metadata(path, files, m=None):
     if 'skill.json' in files:
         require(package_metadata(files['skill.json']) == display_manifest(m),
                 'skill.json differs from catalog metadata; review version and run sync-manifest')
+    if 'publishedPackage' in m:
+        validate_published_package(m)
+        if m['publishedVersion'] == m['version']:
+            require(m['publishedPackage'] == feed_entry(m, files), 'Published snapshot differs from current package')
     return m
+
+
+def feed_entry(m, files):
+    data = package_bytes(files)
+    return {'id': m['id'], 'name': frontmatter(files['SKILL.md'])['name'],
+            'title': m['title'], 'description': m['purpose'], 'author': m['author']['name'],
+            'version': m['version'],
+            'downloadUrl': f'{REPO}/releases/download/{tag_name(m)}/{asset_name(m)}',
+            'sha256': hashlib.sha256(data).hexdigest(), 'sizeBytes': len(data)}
+
+
+def validate_published_package(m):
+    entry = m['publishedPackage']
+    require(isinstance(entry, dict) and set(entry) == {'id', 'name', 'title', 'description', 'author', 'version', 'downloadUrl', 'sha256', 'sizeBytes'}, 'Invalid published package snapshot')
+    require(m['publishedVersion'] is not None and entry['version'] == m['publishedVersion']
+            and entry['id'] == entry['name'] == m['id'], 'Published snapshot identity/version mismatch')
+    package_metadata(json.dumps({'schemaVersion': 1, **{k: entry[k] for k in ('title', 'description', 'author', 'version')}}).encode('utf-8'))
+    for key in ('title', 'description', 'author'):
+        text(entry[key])
+    published = {**m, 'version': entry['version']}
+    require(entry['downloadUrl'] == f'{REPO}/releases/download/{tag_name(published)}/{asset_name(published)}', 'Published URL must be the immutable repository asset')
+    require(isinstance(entry['sha256'], str) and re.fullmatch('[0-9a-f]{64}', entry['sha256']), 'Invalid published ZIP checksum')
+    require(type(entry['sizeBytes']) is int and 0 < entry['sizeBytes'] <= MAX_ZIP, 'Invalid published ZIP size')
 
 
 def display_manifest(m):
@@ -208,6 +235,7 @@ def confirm_publication(skill_id, root=ROOT, fetch=public_bytes):
     require(matches, 'Stable download has not advanced to this verified version; retry after GitHub cache propagation')
     # All remote checks finish before local metadata or links change.
     m['publishedVersion'] = m['version']
+    m['publishedPackage'] = feed_entry(m, files)
     path = root / 'skills' / m['id'] / 'metadata.json'
     path.write_text(json.dumps(m, indent=2, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
     generate(root)
@@ -284,6 +312,9 @@ def generated(root=ROOT):
     records = load(root)
     rows = ['| Skill | Author | Purpose | Version | Download |', '| --- | --- | --- | --- | --- |']
     output = {}
+    # Retain the verified old snapshot while a newer source version is pending.
+    # Never infer publication from local package bytes or publishedVersion alone.
+    output[root / 'catalog.json'] = json.dumps({'schemaVersion': 1, 'skills': [m['publishedPackage'] for m, _ in records if 'publishedPackage' in m]}, indent=2, ensure_ascii=False) + '\n'
     for m, files in records:
         rows.append(f"| [{escape(m['title'])}](docs/skills/{m['id']}.md) | {credit(m['author'])} | {escape(m['purpose'])} | {m['version']} | {download_link(m)} |")
         output[root / 'docs' / 'skills' / (m['id'] + '.md')] = detail(m, files)

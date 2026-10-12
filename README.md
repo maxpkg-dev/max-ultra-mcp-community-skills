@@ -70,6 +70,8 @@ The portable [`skill.json` display manifest](docs/PACKAGE_METADATA.md) inside ea
 ZIP carries its title, description, author, version, and declared source `Community Skills`
 for compatible importers' About view.
 README catalog rows and [detail pages](docs/skills) are generated together.
+The [machine-readable install feed](https://maxpkg-dev.github.io/max-ultra-mcp-community-skills/catalog.json)
+contains verified published versions for supporting clients. See its [schema and publication rules](docs/CATALOG_FEED.md).
 
 With Python 3.12 or later (package tools use the standard library; tests use pinned PyYAML):
 
