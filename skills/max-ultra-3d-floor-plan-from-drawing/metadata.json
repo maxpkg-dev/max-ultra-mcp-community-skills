@@ -3,7 +3,7 @@
   "id": "max-ultra-3d-floor-plan-from-drawing",
   "title": "3D Floor Plan from Drawing",
   "version": "1.0.1",
-  "publishedVersion": "1.0.0",
+  "publishedVersion": "1.0.1",
   "category": "Modeling",
   "purpose": "Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP.",
   "usage": {
