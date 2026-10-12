@@ -267,8 +267,8 @@ class CatalogTests(unittest.TestCase):
             self.assertEqual(before, {p: p.read_bytes() for p in before})
 
     def test_usage_survives_generation_and_stays_outside_package(self):
-        path = next((self.root / 'skills').glob('*/metadata.json'))
         m, files = catalog.load(self.root)[0]
+        path = self.root / 'skills' / m['id'] / 'metadata.json'
         package_before = v.package_bytes(files)
         m['usage'] = {'steps': ['Supply the input image.'], 'examples': ['Review [this] <image>.'], 'expectedOutput': 'Prioritized fixes.'}
         path.write_text(json.dumps(m), encoding='utf-8')
