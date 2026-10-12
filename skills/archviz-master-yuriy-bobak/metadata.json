@@ -3,7 +3,7 @@
   "id": "archviz-master-yuriy-bobak",
   "title": "ArchViz Master",
   "version": "1.2.3",
-  "publishedVersion": "1.2.2",
+  "publishedVersion": "1.2.3",
   "category": "Architectural visualization",
   "purpose": "Architectural render critique, composition, mood design, and production planning.",
   "usage": {
@@ -48,12 +48,12 @@
   "publishedPackage": {
     "id": "archviz-master-yuriy-bobak",
     "name": "archviz-master-yuriy-bobak",
-    "title": "ArchViz Master (Yuriy Bobak)",
+    "title": "ArchViz Master",
     "description": "Architectural render critique, composition, mood design, and production planning.",
     "author": "Yuriy Bobak",
-    "version": "1.2.2",
-    "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.2/archviz-master-yuriy-bobak-1.2.2-max-ultra-mcp.zip",
-    "sha256": "951e5a488134b7fb589fa23731e1ddc10b18c178f20116599d7dbabaf354092e",
-    "sizeBytes": 193446
+    "version": "1.2.3",
+    "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-v1.2.3/archviz-master-yuriy-bobak-1.2.3-max-ultra-mcp.zip",
+    "sha256": "270feb193323e1b7aad318d741f18eaf7ac18e94a32e153161a93a9cff98618d",
+    "sizeBytes": 193434
   }
 }
