@@ -7,7 +7,9 @@ Turn an existing architectural drawing into an editable 3D wall shell with separ
 
 ## Download and install
 
-Version 1.0.0 is awaiting confirmed publication. No download is available yet.
+**[Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-latest/max-ultra-3d-floor-plan-from-drawing-latest-max-ultra-mcp.zip)** · [Version history and checksums](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases?q=max-ultra-3d-floor-plan-from-drawing-v)
+
+This permanent link downloads this skill's latest verified published ZIP. It stays the same when a new version is released. Numbered releases remain available in the history.
 
 In Max Ultra MCP, use **Skills → Custom → Import ZIPs**, then start a new AI chat.
 For updates and duplicate-name handling, see the [installation guide](../INSTALL.md).
