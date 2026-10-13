@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "max-ultra-python-tool-development",
+  "title": "Python and Qt Tool Development for 3ds Max",
+  "version": "1.0.0",
+  "publishedVersion": null,
+  "category": "Other",
+  "purpose": "Develop organized Python tools for 3ds Max with a MaxScript launcher, safe instance restart, editable Warm Graphite-based themes, shared Qt controls, and layered testing.",
+  "usage": {
+    "steps": [
+      "Import this standalone community/custom skill ZIP in a compatible Max Ultra MCP build, then start a new AI chat. It is separate from the product's built-in skills; importing it does not install or run a Python tool.",
+      "Ask for Python and Qt Tool Development for 3ds Max. Supply the tool's purpose or existing code, target Max releases, intended scene effects, and project destination. Specify your preference for responsive breakpoint adaptation; the assistant must ask before enabling it if no choice was supplied.",
+      "Request a thin .ms launcher, a restart-safe Python lifecycle, separated modules/resources/docs, and the shared Qt design system. Theme selection starts with Warm Graphite and uses the included editable palette references. Button icons use original Lucide Icons unless you request a different set.",
+      "For real-Max verification, provide an authorized isolated or synthetic Max fixture connected through Max Ultra MCP. Request smoke, unit, regression, interface and visual checks across each available supported Python/Qt family. Unavailable hosts and unrun scenarios must remain explicitly untested."
+    ],
+    "examples": [
+      "Use Python and Qt Tool Development for 3ds Max to build a scene report tool for Max 2022 and 2025. Use a .ms launcher and clean restart, theme selection in Settings, Warm Graphite by default, and stable typography without breakpoint scaling. Do not modify scene objects.",
+      "Refactor this Python Qt tool so rerunning its MaxScript launcher disposes of previous windows, timers and callbacks. Add cancellation and block replacement if an owned worker cannot stop. Preserve unrelated Max state.",
+      "Apply the shared Qt design system to this tool: editable palettes, rounded fields and dropdowns, Lucide icons, consistent tabs, Settings veils and copy feedback. Ask me about responsive adaptation before implementing breakpoints.",
+      "Design isolated tests for this tool's theme switching, repeated launch, HTML resize reentrancy, context menus, spin controls and 200%+ DPI rendering. Use available disposable Max instances through MCP and report exact tested runtimes and missing coverage."
+    ],
+    "expectedOutput": "A maintainable standalone Python/Qt tool project or scoped refactor, with a .ms entry point, explicit resource ownership and restart behavior, shared editable themes and UI components, documentation, and honest layered test evidence. Includes practical implementation references and seven verified source palettes. Examples describe intended use, not a claim of practical Max testing of this skill."
+  },
+  "author": {
+    "name": "Lukianenko Vasyl / 3DGROUND",
+    "profile": null
+  },
+  "submitter": null,
+  "reviewer": null,
+  "dependencies": [
+    "A coding-capable AI client and filesystem access to the tool project; the reference product checkout is not required after importing this skill.",
+    "For generated tools: Autodesk 3ds Max with its bundled Python, pymxs, qtmax and matching PySide/Qt family. Inspect actual target versions and capabilities; no exact Max release has been practically tested for this skill.",
+    "For host verification: Max Ultra MCP connected to an authorized isolated/synthetic Max instance. Pure logic and standalone Qt tests use separate suitable development environments.",
+    "Generated tool button icons require original Lucide SVG assets and their license unless the user requests another icon set. Icons are not bundled in this instruction-only skill.",
+    "A Max Ultra MCP custom-skill importer supporting the optional skill.json display manifest. This package contains instructions and JSON palette references, not executable helpers."
+  ],
+  "testedVersions": [],
+  "verification": {
+    "level": "package-validated",
+    "evidence": "Catalog importer-contract validation, generated-page check, skill-creator quick validation and deterministic ZIP roundtrip passed. The repository suite ran 51 tests: 50 passed and one filesystem-symlink test was skipped due to account capability. Eight local example checks passed for bootstrap failure/restart behavior, cleanup retries, palette hashes/resolution and Python 3.7 grammar parsing using Python 3.12.14. No live import/discovery, PySide rendering or real-Max practical skill test was performed; no practical reviewer is recorded."
+  },
+  "terms": {
+    "distribution": "Prepared locally at the user's request for a separately installable community/custom skill. Publication and push are explicitly not authorized in this task. No public release or general product sublicense is asserted.",
+    "adaptation": "The user authorized new skill instructions and reusable examples derived from read-only source inspection, and explicitly requested actual editable source palette files. Seven palette files retain their source bytes and attribution. Executable product implementation and icon assets are not bundled.",
+    "evidence": "Task authorization and requested public author credit were supplied by the user on 2026-10-13. Source attribution is Lukianenko Vasyl / 3DGROUND. No separate open-source license or broader sublicensing grant was inspected."
+  },
+  "provenance": "New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation.",
+  "submission": null,
+  "packageSha256": "21919c154cf299c0b21a43c75efef809743483e633aff210a2d03dc847585db3"
+}
