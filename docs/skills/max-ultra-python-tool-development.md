@@ -3,7 +3,7 @@
 
 By **Lukianenko Vasyl / 3DGROUND** · Version **1.0.0** · Other
 
-Develop organized Python tools for 3ds Max with a MaxScript launcher, safe instance restart, editable Warm Graphite-based themes, shared Qt controls, and layered testing.
+Develop organized Python tools for 3ds Max with a MaxScript launcher, safe restart, editable themes, reusable Qt components, layered testing, and official MaxPkg MZP delivery.
 
 ## Download and install
 
@@ -18,21 +18,23 @@ For updates and duplicate-name handling, see the [installation guide](../INSTALL
 2. Ask for Python and Qt Tool Development for 3ds Max. Supply the tool's purpose or existing code, target Max releases, intended scene effects, and project destination. Specify your preference for responsive breakpoint adaptation; the assistant must ask before enabling it if no choice was supplied.
 3. Request a thin .ms launcher, a restart-safe Python lifecycle, separated modules/resources/docs, and the shared Qt design system. Theme selection starts with Warm Graphite and uses the included editable palette references. Button icons use original Lucide Icons unless you request a different set.
 4. For real-Max verification, provide an authorized isolated or synthetic Max fixture connected through Max Ultra MCP. Request smoke, unit, regression, interface and visual checks across each available supported Python/Qt family. Unavailable hosts and unrun scenarios must remain explicitly untested.
+5. Creating a tool includes a package-ready source project and a local installable MZP built by the official MaxPkg Packager through its API in a selected Max instance. Supply any missing legal/identity facts. Build and archive checks are separate from authorized install/update/uninstall tests; report unavailable tooling or hosts as blockers. Narrow edits/audits stay scoped; external publication and push require separate authorization.
 
 Example requests:
 
-- Use Python and Qt Tool Development for 3ds Max to build a scene report tool for Max 2022 and 2025. Use a .ms launcher and clean restart, theme selection in Settings, Warm Graphite by default, and stable typography without breakpoint scaling. Do not modify scene objects.
+- Use Python and Qt Tool Development for 3ds Max to build a scene report tool for Max 2022 and 2025. Use a .ms launcher and clean restart, theme selection in Settings, Warm Graphite by default, and stable typography without breakpoint scaling. Do not modify scene objects. Deliver the source project and an MZP built with the official MaxPkg Packager; report any missing prerequisites.
 - Refactor this Python Qt tool so rerunning its MaxScript launcher disposes of previous windows, timers and callbacks. Add cancellation and block replacement if an owned worker cannot stop. Preserve unrelated Max state.
 - Apply the shared Qt design system to this tool: editable palettes, rounded fields and dropdowns, Lucide icons, consistent tabs, Settings veils and copy feedback. Ask me about responsive adaptation before implementing breakpoints.
 - Design isolated tests for this tool's theme switching, repeated launch, HTML resize reentrancy, context menus, spin controls and 200%+ DPI rendering. Use available disposable Max instances through MCP and report exact tested runtimes and missing coverage.
 
-Expected output: A maintainable standalone Python/Qt tool project or scoped refactor, with a .ms entry point, explicit resource ownership and restart behavior, shared editable themes and UI components, documentation, and honest layered test evidence. Includes practical implementation references and seven verified source palettes. Examples describe intended use, not a claim of practical Max testing of this skill.
+Expected output: For tool creation: a maintainable source project with a .ms entry point, safe restart, reusable themed Qt components, documentation, layered test evidence, and a locally built official MaxPkg MZP with archive verification; if blocked, the fullest verified ready-to-build project and explicit missing prerequisites. Narrow refactors/audits stay scoped. Includes practical references and seven verified palettes. Recipes are adaptable examples, not a drop-in library or pixel-identical guarantee; no practical Max testing of this skill is claimed.
 
 ## Dependencies
 
 - A coding-capable AI client and filesystem access to the tool project; the reference product checkout is not required after importing this skill.
 - For generated tools: Autodesk 3ds Max with its bundled Python, pymxs, qtmax and matching PySide/Qt family. Inspect actual target versions and capabilities; no exact Max release has been practically tested for this skill.
 - For host verification: Max Ultra MCP connected to an authorized isolated/synthetic Max instance. Pure logic and standalone Qt tests use separate suitable development environments.
+- For default local MZP delivery: current official maxpkg-dev/max-dev-tool guidance and original packager/hooks, required project metadata and icon/licenses, and a selected suitable 3ds Max connection exposing MaxPkgPackerApi through Max Ultra MCP. No custom ZIP-to-MZP substitute is permitted.
 - Generated tool button icons require original Lucide SVG assets and their license unless the user requests another icon set. Icons are not bundled in this instruction-only skill.
 - A Max Ultra MCP custom-skill importer supporting the optional skill.json display manifest. This package contains instructions and JSON palette references, not executable helpers.
 
@@ -59,12 +61,12 @@ Adaptation: The user authorized new skill instructions and reusable examples der
 
 Permission evidence: Task authorization and requested public author credit were supplied by the user on 2026-10-13. Source attribution is Lukianenko Vasyl / 3DGROUND. No separate open-source license or broader sublicensing grant was inspected.
 
-Provenance: New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation.
+Provenance: New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation. MaxPkg delivery guidance was checked against official upstream commit 1281d283b30d885382c12804ca12da3f092d888b on 2026-10-13; no generated-tool MZP build or install was performed.
 
 ## Package
 
-17 files · 116,170 bytes expanded · instruction-only.
+18 files · 134,700 bytes expanded · instruction-only.
 
-Content fingerprint: `b2ecedc3d08dba4a6cfb4d0d207974958f000a8dfb0f6963c94356f54d8cd860`.
+Content fingerprint: `3daaa3cb766b921df974b9bc737b1a958d99ffa9b21950a102a45538a4acabfa`.
 
 [Read the instructions](../../skills/max-ultra-python-tool-development/package/SKILL.md) · [Metadata](../../skills/max-ultra-python-tool-development/metadata.json)

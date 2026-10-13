@@ -9,6 +9,8 @@ Run checks relevant to the generated tool, with pure/mocked and real-host result
 | Stop timeout or cleanup exception | No duplicate replacement; Max stays alive; retained owner enables later cleanup retry; diagnostic names the failure |
 | Startup failure after each acquisition | Already-acquired resources released; unrelated Max callbacks/windows/processes remain intact |
 | Theme selection with all dialogs open | Every owned window, popup, menu, painted control and rich text changes immediately; persisted ID restores on next launch |
+| Shared controls reused in different dialogs | The same component fix affects each composition; named variants retain shared interaction/theme/DPI behavior without copied paint/style code |
+| Compact status pills with large numbers | Short label retains meaningful numeric value/units and accessible full text; reflow avoids replacing all content with ellipsis |
 | Edit a theme file and reselect it | Fresh values load without code edits; malformed file leaves the previous palette usable and picker consistent |
 | Theme change with dropdown/QListView present | No `update()` overload exception; viewport and owning window repaint correctly in both binding families |
 | Repeated resize while setting rich HTML and switching themes | One metadata block; no nested document duplication, infinite reflow, or source mutation; selected text and reading position remain useful |

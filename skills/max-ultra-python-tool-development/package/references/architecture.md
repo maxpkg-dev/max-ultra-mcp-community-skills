@@ -7,6 +7,12 @@ An illustrative output project (these are files to create for the requested tool
 ```text
 my_tool/
   StartMyTool.ms
+  maxpkg-packager.ms          # original official authoring tool
+  _install.ms                # original standard hook
+  _uninstall.ms              # original standard hook
+  maxpkg-packager.ini         # project-local reviewed build configuration
+  maxpkg-changelog.ini
+  maxpkg-icon.svg
   python/
     bootstrap.py              # stable-session coordination, controlled imports
     studio_my_tool/
@@ -22,11 +28,13 @@ my_tool/
   assets/                     # icons, themes, templates actually required
   docs/                       # launch, supported versions, behavior and limitations
   tests/                      # pure logic and separate disposable host fixtures
+  licenses/                   # shipped asset/dependency license texts
+  dist/                       # official MaxPkg MZP output, excluded from runtime inputs
 ```
 
 Use a unique package namespace. Merge tiny modules when separation would add no value; do not create empty folders, a framework, or a transport layer for a small utility. Let widgets call controller actions, and keep scene mutation out of paint events and worker completion threads. Pass data into domain code rather than importing `pymxs` there. Use direct supported `pymxs` APIs rather than constructing executable MaxScript strings from user input.
 
-For this layout, `resources.py` can derive the root with `Path(__file__).resolve().parents[2]` and use `root / "assets" / "icons"`. That parent count belongs to this layout; update it when moving modules, or inject the bootstrap root. Validate required files and report a useful path when missing. Keep preferences outside a potentially read-only installation directory. Include required assets in the distribution; preserve third-party asset licenses.
+For this layout, `resources.py` can derive the root with `Path(__file__).resolve().parents[2]` and use `root / "assets" / "icons"`. That parent count belongs to this layout; update it when moving modules, or inject the bootstrap root. Validate required files and report a useful path when missing. Keep durable preferences outside a potentially read-only installation directory; deliberately disposable package-owned settings may use the installed runtime root with a documented retention policy. Include required assets and licenses in the official MZP allowlist. See [MaxPkg delivery](maxpkg-delivery.md) for the required creation-stage build and scoped-edit exception.
 
 ## Runtime targets
 
