@@ -1,6 +1,6 @@
 # Editable reference palettes
 
-These JSON snapshots preserve the actual bytes of seven `assets/themes` files inspected in Max Ultra MCP at commit `8c364294e1b5f9cb0aed778ba8aaac91f3015070` on 2026-10-13. Source attribution: Lukianenko Vasyl / 3DGROUND. The user explicitly requested their inclusion for reuse in this standalone skill. This records local preparation authority, not a general license to the reference product or authorization to publish. The catalog terms retain that boundary.
+These JSON snapshots preserve the actual bytes of seven `assets/themes` files inspected in Max Ultra MCP at commit `8c364294e1b5f9cb0aed778ba8aaac91f3015070` on 2026-10-13. Source attribution: Lukianenko Vasyl / 3DGROUND. The user explicitly requested their inclusion for reuse in this standalone skill and authorized publication of the skill on 2026-10-13. This is not a general license or sublicense to the reference product. The catalog terms record the publication authority and attribution boundary.
 
 | Editable file | Theme | SHA-256 of source bytes |
 | --- | --- | --- |

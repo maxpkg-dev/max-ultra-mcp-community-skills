@@ -55,18 +55,18 @@ Tested software versions:
 - Reviewer: Not recorded
 - Submission: Prepared initial contribution; no public issue recorded.
 
-Distribution: Prepared locally at the user's request for a separately installable community/custom skill. Publication and push are explicitly not authorized in this task. No public release or general product sublicense is asserted.
+Distribution: The user explicitly authorized production publication of this standalone community/custom skill on 2026-10-13, including its attributed palette references, and chose the documented manual GitHub release route. No general license or sublicense to the Max Ultra MCP product is asserted.
 
 Adaptation: The user authorized new skill instructions and reusable examples derived from read-only source inspection, and explicitly requested actual editable source palette files. Seven palette files retain their source bytes and attribution. Executable product implementation and icon assets are not bundled.
 
-Permission evidence: Task authorization and requested public author credit were supplied by the user on 2026-10-13. Source attribution is Lukianenko Vasyl / 3DGROUND. No separate open-source license or broader sublicensing grant was inspected.
+Permission evidence: Creation, palette inclusion, public author credit and production publication were authorized by the user on 2026-10-13. Source attribution is Lukianenko Vasyl / 3DGROUND. No separate open-source license or broader sublicensing grant was inspected.
 
 Provenance: New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation. MaxPkg delivery guidance was checked against official upstream commit 1281d283b30d885382c12804ca12da3f092d888b on 2026-10-13; no generated-tool MZP build or install was performed.
 
 ## Package
 
-18 files · 134,700 bytes expanded · instruction-only.
+18 files · 134,743 bytes expanded · instruction-only.
 
-Content fingerprint: `3daaa3cb766b921df974b9bc737b1a958d99ffa9b21950a102a45538a4acabfa`.
+Content fingerprint: `71df678dc6fa2c072b0115f715965ab96de69cfa952df6d990d73da57646db1b`.
 
 [Read the instructions](../../skills/max-ultra-python-tool-development/package/SKILL.md) · [Metadata](../../skills/max-ultra-python-tool-development/metadata.json)
