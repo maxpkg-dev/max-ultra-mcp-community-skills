@@ -8,7 +8,7 @@
 | --- | --- | --- | --- | --- |
 | [ArchViz Master](docs/skills/archviz-master-yuriy-bobak.md) | [Yuriy Bobak](https://bobak.studio/) | Architectural render critique, composition, mood design, and production planning. | 1.2.3 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/archviz-master-yuriy-bobak-latest/archviz-master-yuriy-bobak-latest-max-ultra-mcp.zip) |
 | [3D Floor Plan from Drawing](docs/skills/max-ultra-3d-floor-plan-from-drawing.md) | Mykhailo Svidryk | Turn an existing architectural drawing into an editable 3D wall shell with separate storeys, spline-derived slabs, and door openings in 3ds Max through Max Ultra MCP. | 1.0.1 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-latest/max-ultra-3d-floor-plan-from-drawing-latest-max-ultra-mcp.zip) |
-| [Python and Qt Tool Development for 3ds Max](docs/skills/max-ultra-python-tool-development.md) | Lukianenko Vasyl / 3DGROUND | Develop organized Python tools for 3ds Max with a MaxScript launcher, safe restart, editable themes, reusable Qt components, layered testing, and official MaxPkg MZP delivery. | 1.0.0 | Publication pending |
+| [Python and Qt Tool Development for 3ds Max](docs/skills/max-ultra-python-tool-development.md) | Lukianenko Vasyl / 3DGROUND | Develop organized Python tools for 3ds Max with a MaxScript launcher, safe restart, editable themes, reusable Qt components, layered testing, and official MaxPkg MZP delivery. | 1.0.0 | [Download ZIP](https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-python-tool-development-latest/max-ultra-python-tool-development-latest-max-ultra-mcp.zip) |
 
 <!-- catalog:end -->
 

@@ -22,6 +22,17 @@
       "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-3d-floor-plan-from-drawing-v1.0.1/max-ultra-3d-floor-plan-from-drawing-1.0.1-max-ultra-mcp.zip",
       "sha256": "250a340a95c67b0b44add8b9d0d003f9bc4984a1670e8346ab98a6ce7e28a9c9",
       "sizeBytes": 20752
+    },
+    {
+      "id": "max-ultra-python-tool-development",
+      "name": "max-ultra-python-tool-development",
+      "title": "Python and Qt Tool Development for 3ds Max",
+      "description": "Develop organized Python tools for 3ds Max with a MaxScript launcher, safe restart, editable themes, reusable Qt components, layered testing, and official MaxPkg MZP delivery.",
+      "author": "Lukianenko Vasyl / 3DGROUND",
+      "version": "1.0.0",
+      "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-python-tool-development-v1.0.0/max-ultra-python-tool-development-1.0.0-max-ultra-mcp.zip",
+      "sha256": "c3e9681c8cc97ec15ea23332b991007d6b0ab4631088175d4b74c8402c2f6471",
+      "sizeBytes": 137025
     }
   ]
 }
