@@ -285,7 +285,7 @@ Tested software versions:
 
 ## Attribution and permission
 
-- Author: {credit(m['author'])}
+- Author: {credit(m['author'])}{(' · [' + escape(m['author']['email']) + '](mailto:' + m['author']['email'] + ')') if 'email' in m['author'] else ''}
 - Submitter: {credit(m['submitter'])}
 - Reviewer: {credit(m['reviewer'])}
 - Submission: {m['submission'] or 'Prepared initial contribution; no public issue recorded.'}

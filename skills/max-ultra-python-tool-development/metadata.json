@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "max-ultra-python-tool-development",
   "title": "Python and Qt Tool Development for 3ds Max",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publishedVersion": "1.0.0",
   "category": "Other",
   "purpose": "Develop organized Python tools for 3ds Max with a MaxScript launcher, safe restart, editable themes, reusable Qt components, layered testing, and official MaxPkg MZP delivery.",
@@ -24,7 +24,8 @@
   },
   "author": {
     "name": "Lukianenko Vasyl / 3DGROUND",
-    "profile": null
+    "profile": "https://3dground.net",
+    "email": "info@3dground.net"
   },
   "submitter": null,
   "reviewer": null,
@@ -48,7 +49,7 @@
   },
   "provenance": "New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation. MaxPkg delivery guidance was checked against official upstream commit 1281d283b30d885382c12804ca12da3f092d888b on 2026-10-13; no generated-tool MZP build or install was performed.",
   "submission": null,
-  "packageSha256": "71df678dc6fa2c072b0115f715965ab96de69cfa952df6d990d73da57646db1b",
+  "packageSha256": "487d020e06cb132c89bcfb32a147c4fd21952de180ef1e9e50e5475362144daf",
   "publishedPackage": {
     "id": "max-ultra-python-tool-development",
     "name": "max-ultra-python-tool-development",
