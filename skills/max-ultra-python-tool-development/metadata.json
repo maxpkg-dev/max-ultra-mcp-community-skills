@@ -46,5 +46,5 @@
   },
   "provenance": "New AI-assisted skill authored under user direction, with public credit explicitly selected as Lukianenko Vasyl / 3DGROUND. Patterns were verified in Max Ultra MCP source, beginning at commit 8c364294e1b5f9cb0aed778ba8aaac91f3015070; follow-up UI inspection saw commit 513662305ad8ea6758f721e85cdcc6b73858902f with concurrent working-tree changes. Source evidence distinguishes observations, user-required design policy and new recommendations. Seven palette JSON snapshots include byte hashes; no product repository files were modified by this preparation.",
   "submission": null,
-  "packageSha256": "21919c154cf299c0b21a43c75efef809743483e633aff210a2d03dc847585db3"
+  "packageSha256": "b2ecedc3d08dba4a6cfb4d0d207974958f000a8dfb0f6963c94356f54d8cd860"
 }

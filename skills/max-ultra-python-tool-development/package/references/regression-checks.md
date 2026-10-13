@@ -19,6 +19,7 @@ Run checks relevant to the generated tool, with pure/mocked and real-host result
 | Rounded field with both scrollbars visible | No square viewport corners, blue backing, native arrows or unthemed scroll-area corner |
 | Dropdown at top/bottom/edge of each monitor | No square arrow button; distinct rounded popup; compact padding; 4px gap where space permits; popup stays within work area |
 | Joined tabs, first/middle/last selection, scrolling and RTL | Continuous baseline outside selected face, no doubled native base/square backing, consistent page padding and keyboard focus |
+| Requested About dialog in Qt5/PySide2 and Qt6/PySide6, short/tall/short and 200%+ DPI | Header/Close X and hero do not expand on vertical resize; body absorbs height; 24/18 hero/body insets, close subtitle grouping, full-width divider and combined 36px-plus-layout footer gap look intentional; metadata, links and actions stay usable |
 | Integer/double spin controls at bounds, disabled/read-only, wheel and keyboard | Lucide arrows and themed transparent button areas, correct step enablement and values, no accidental unfocused wheel changes, clipped rounded outer surface at high DPI |
 | Context menu states | Rounded boundary, aligned icon/text/shortcut, comfortable padding; danger action separated/red; disabled items do not look active |
 | Keyboard interaction | Focus ring visible; Tab/Enter/Escape and dropdown navigation work; typing does not invoke Max accelerators; prior accelerator state restored on cleanup |

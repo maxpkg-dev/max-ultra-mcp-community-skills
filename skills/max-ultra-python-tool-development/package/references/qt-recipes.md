@@ -298,21 +298,61 @@ Validate integer and floating controls at bounds, repeated press, disabled/read-
 
 ## About dialog and shared insets
 
-The follow-up reference inspection found `dialogs.py:AboutWindow` in an evolving working tree. It separates a full-width themed hero, accent separator and body; this recipe reuses the composition without the product's branding.
+Apply this recipe **when the user requests an About dialog**; it is not an obligation to add About to every script. The final approved reference is `dialogs.py:AboutWindow`, inspected in the evolving source working tree on 2026-10-13. Reuse the composition and coherent tokens without copying product branding or destinations.
 
 ```text
 About window (Max-owned; shared window chrome)
-  header                    inner left/right inset = content inset
-  hero surface              full bleed; inner padding uses shared tokens
-    large product icon      original authorized brand asset; DPI-aware
-    title / subtitle        larger title, muted supporting text, wraps if needed
+  title bar / Close X       fixed vertical size policy; never absorbs height
+  hero surface              full bleed, contrasting theme surface; fixed vertical policy
+    large script icon       original authorized brand asset; DPI-aware
+    script name / subtitle  larger title; smaller subtitle close beneath it
   accent divider            full available width, deliberate no side inset
-  body                      content inset matches header and hero text grid
-    version / author / license or build metadata
-    themed website / documentation links
-    Donate / Close          shared action controls and matching heights
+  body                      larger About insets aligned with hero content
+    description             wraps to available width
+    Version / Developer / Project
+    accent-colored website links
+    vertical stretch        absorbs extra height inside body
+    generous footer gap
+    Donate / Close          shared actions; horizontal stretch between them
 ```
 
-Create separate hero/body containers rather than removing margins from each child ad hoc. Set the outer composition spacing to zero only for the full-bleed sections, then apply the shared scale inside containers. Keep metadata compact, legible and selectable where useful; omit unknown author/license claims. Link styles use the theme's shared link role. Make `Close` use the normal dialog-close path; a Donate action uses the known project destination and original Lucide heart button icon (omit it if no destination was supplied). A product logo is a brand asset, not an exception permitting mixed button icon styles.
+About deliberately uses more generous insets than dense utility dialogs. Reference tokens are logical pixels unless marked as points:
 
-Use size hints and work-area bounds, with scrolling for small displays, rather than fixing a height that truncates body content at 200%+. Theme changes update hero, divider, links, icons and buttons while the dialog remains open. Test long product names, absent metadata, narrow width, keyboard close and Settings stacking; verify header/body left edges align while the intentional divider remains full width.
+| Token | Reference value / behavior |
+| --- | --- |
+| Default width | 460; reference minimum width 320, subject to content/work area |
+| Hero and body margins | 24 horizontal, 18 vertical |
+| Hero row and body layout spacing | 12 |
+| Name/subtitle stack spacing | 0; keep subtitle visibly close below the name |
+| Extra space before footer | Explicit 36 spacer, in addition to applicable layout gaps |
+| Script icon | 60 logical pixels rendered at device pixel ratio |
+| Title / subtitle / compact body type | Reference 20pt / 10pt / 10pt, adapted for content and legibility |
+| Accent divider | 2 high, full width with no side inset |
+| Title bar inset | Reference retains compact 8 horizontal / 6 vertical chrome inset; hero/body share the larger content grid |
+
+Create separate hero/body containers. Set outer composition margins and spacing to zero for the full-bleed surfaces, then apply the About tokens inside them. The compact chrome inset is a deliberate exception to the hero/body grid; do not force all three to the dense utility inset. Treat these values as a coherent starting set, adapting safely to content, DPI and explicit user requirements. The 36 spacer is not a promise that the rendered link-to-footer gap is exactly 36: layout spacing and stretch also contribute, so inspect the combined gap visually.
+
+Concrete layout mechanics (fragments inside the generated dialog constructor; `about`, `header`, `hero_panel`, `body`, and `content` are its owned layout/widgets):
+
+```python
+about.setContentsMargins(0, 0, 0, 0)
+about.setSpacing(0)
+header.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+hero_panel.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+hero_panel.layout().setContentsMargins(24, 18, 24, 18)
+hero_panel.layout().setSpacing(12)
+content.setContentsMargins(24, 18, 24, 18)
+content.setSpacing(12)
+# Add description, metadata and links before the body stretch.
+content.addStretch(1)
+content.addSpacing(36)
+content.addLayout(buttons)  # Donate, horizontal stretch, Close
+body.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+about.setStretchFactor(body, 1)
+```
+
+Use a fixed **vertical size policy** and size hint for the title bar/hero instead of locking their heights to guessed physical pixels. This keeps extra vertical space in the body while permitting a new appropriate size hint after font/DPI/content changes. Preserve the title-bar Close X and footer Close through the normal dialog-close path. Retain shared rounded-window treatment and safe shadow fallback, theme-consistent contrast, and pointing-hand cursors on enabled actions/links. Keep metadata compact, legible and selectable where useful; omit unknown developer/project values rather than inventing them. Accent-colored links use the shared theme link role (`support_link` in the reference). Donate uses the supplied project destination and original Lucide heart button icon; omit it if no destination is known. A script logo is a brand asset, not permission to mix button icon styles.
+
+Use size hints and work-area bounds, with body scrolling for small displays, rather than fixing a dialog height that truncates content at 200%+. Keep the hero name and subtitle together; wrap or elide long content deliberately without allowing ordinary vertical resize to stretch their separation. Theme changes update hero, divider, links, icons and actions while open.
+
+For **Qt5/PySide2 and Qt6/PySide6**, test every available supported runtime and record unavailable ones as untested. Capture and visually review initial 460px width, narrower/long-content cases, and short-to-tall-to-short resize at 100%, 200% and greater-than-200% DPI when available. Assert the header and hero heights stay unchanged during vertical-only resize, Close X stays aligned, the body receives extra space, and footer controls remain reachable. Check the full-width divider, matching hero/body insets, close title/subtitle grouping, total footer separation, icon clarity, theme switching, rounded corners/shadow fallback, hand cursors, keyboard close and Settings modal stacking. Source inspection alone does not establish that these visual checks passed.

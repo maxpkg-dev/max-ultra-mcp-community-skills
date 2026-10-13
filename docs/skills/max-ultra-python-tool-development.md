@@ -63,8 +63,8 @@ Provenance: New AI-assisted skill authored under user direction, with public cre
 
 ## Package
 
-17 files · 111,678 bytes expanded · instruction-only.
+17 files · 116,170 bytes expanded · instruction-only.
 
-Content fingerprint: `21919c154cf299c0b21a43c75efef809743483e633aff210a2d03dc847585db3`.
+Content fingerprint: `b2ecedc3d08dba4a6cfb4d0d207974958f000a8dfb0f6963c94356f54d8cd860`.
 
 [Read the instructions](../../skills/max-ultra-python-tool-development/package/SKILL.md) · [Metadata](../../skills/max-ultra-python-tool-development/metadata.json)
