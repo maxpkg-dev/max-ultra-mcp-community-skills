@@ -195,6 +195,7 @@ def repolish(widget):
         own = widget.styleSheet()
         widget.setStyleSheet(own + " ")  # A different, non-empty sheet: Qt re-polishes the widget.
         widget.setStyleSheet(own)
+    _take_parent_size(widget)  # Polish gave it the default font back.
     widget.update()
 
 
@@ -214,26 +215,35 @@ def scale_font(widget):
     widget.setProperty("toolFontScaled", True)
 
 
+def _take_parent_size(child):
+    """Give `child` its parent's point size (bold and family stay) when it shows a default size while the parent has
+    the interface size. Style-sheet polish (first show, repolish) hands a widget matched by a rule the application's
+    font, or its class's: item views are 9 pt in Qt 5 where the application has 8.25 pt. True when it changed."""
+    from . import ui_scale
+    parent = child.parentWidget()
+    if ui_scale.current["font"] == 1.0 or parent is None or child.isWindow() or child.testAttribute(Qt.WA_SetFont):
+        return False
+    size, wanted = child.font().pointSizeF(), parent.font().pointSizeF()
+    defaults = (QtWidgets.QApplication.font().pointSizeF(), QtWidgets.QApplication.font(child).pointSizeF())
+    if any(abs(size - d) < 0.01 for d in defaults) and all(abs(wanted - d) > 0.01 for d in defaults):
+        font = QtGui.QFont(child.font())
+        font.setPointSizeF(wanted)
+        child.setFont(font)
+        return True
+    return False
+
+
 def inherit_fonts(root):
-    """Widgets polished before they were placed in an interface-size window keep the application's font of that
-    moment; give each its parent's size (bold and family stay). Runs once a window is built (ThemeManager.register).
-    """
+    """Widgets polished before they were placed in an interface-size window, or by the style sheet when they first
+    showed, keep a default font; give each its parent's size. Runs when a window is built (ThemeManager.register) and
+    when our windows and dropdowns show."""
     from . import ui_scale
     if ui_scale.current["font"] == 1.0:
         return
     for _ in range(3):  # Parents first is usual, but not promised by findChildren.
         changed = False
         for child in root.findChildren(QtWidgets.QWidget):
-            parent = child.parentWidget()
-            if parent is None or child.isWindow() or child.testAttribute(Qt.WA_SetFont):
-                continue
-            size, wanted = child.font().pointSizeF(), parent.font().pointSizeF()
-            base = QtWidgets.QApplication.font(child).pointSizeF()  # Its class default (item views differ).
-            if abs(size - base) < 0.01 and abs(wanted - base) > 0.01:
-                font = QtGui.QFont(child.font())
-                font.setPointSizeF(wanted)
-                child.setFont(font)
-                changed = True
+            changed = _take_parent_size(child) or changed
         if not changed:
             return
 

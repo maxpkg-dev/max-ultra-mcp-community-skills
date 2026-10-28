@@ -63,10 +63,10 @@ Assets the project needs besides the code:
 These details each fixed a real failure in Max; [Max reliability](max-reliability.md) has the history:
 
 - `qt_compat.live_screens` / `screen_at` / `work_area` instead of `widget.screen()`.
-- `qt_compat.repolish` instead of `style().unpolish/polish`.
+- `qt_compat.repolish` instead of `style().unpolish/polish` (it also keeps the widget's interface-size font).
 - The `_GilPump` around every background job, and `JobRunner.submit` as the only way to start one.
 - `hold_gc` for PySide2 on Python 3.10+ (3ds Max 2024) and after any crash marked "Garbage-collecting".
 - The start guard steps and the report printed to the Listener.
-- `inherit_fonts` after polish (`showEvent`) and after building rows later.
+- `inherit_fonts` after polish (`showEvent`, `ComboBox.showPopup`) and after building rows later.
 - Dialog window flags set explicitly (`Qt.Dialog | WindowTitleHint | WindowSystemMenuHint | WindowCloseButtonHint`).
 - No signals on the object registered with `QWebChannel` (if the tool adds a web view).

@@ -46,8 +46,14 @@ The interface size applies while windows are built. A changed choice shows "Appl
   `inherit_fonts(root)` after polish: in the main window's `showEvent`, in each dialog's `showEvent`, and after building
   rows later (lists refilled, groups rebuilt). It compares every widget with its class default and gives it its
   parent's size when it was not set on purpose.
+- Every re-polish does the same: a field whose property changes (a search field that squares its corners while its
+  suggestions are open) or a button whose variant changes (primary to danger while a job runs) falls back to 8.25 / 9
+  pt. `repolish(widget)` gives the widget its parent's size again right after polishing it; never re-polish by hand.
+- A dropdown's list is polished when it first opens, after the window's `showEvent`: `ComboBox.showPopup` polishes its
+  view and runs `inherit_fonts` on the popup before Qt measures the rows.
 - Check: open the window at 125 % or 150 % and compare the point size of a label, a checkbox, a field and a list; they
-  must be equal unless one was set on purpose.
+  must be equal unless one was set on purpose. Then open a dropdown and switch a button's variant twice, and check
+  again: no visible widget may be left at a default size.
 
 ## Responsive breakpoints are a different thing
 

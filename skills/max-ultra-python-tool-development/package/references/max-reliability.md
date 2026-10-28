@@ -42,7 +42,8 @@ Python and PySide2 outside Max did not, even with a collection every 300 ms. The
   crashed Max. Look screens up by position in `QGuiApplication.screens()` (`live_screens`, `screen_at`, `work_area`,
   `primary_work_area`), skip wrappers that raise, keep no QScreen objects, and fall back to a Full HD area.
 - **`widget.style()` can be dead** (another tool replaced the application style, Max 2026): never call
-  `style().unpolish/polish`; `repolish(widget)` re-applies the widget's own style sheet instead.
+  `style().unpolish/polish`; `repolish(widget)` re-applies the widget's own style sheet instead, and puts back the
+  interface-size font that polishing takes away ([interface size](interface-size.md)).
 - After `deleteLater`, a Python wrapper may outlive its C++ object: check `shiboken.isValid` (`is_valid`) before late
   callbacks touch widgets.
 

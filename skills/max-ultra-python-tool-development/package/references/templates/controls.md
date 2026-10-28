@@ -11,7 +11,7 @@ Copy into the tool's project at the shown path and rename as described in [start
 
 import time
 
-from ..qt_compat import QtCore, QtGui, QtSvg, QtWidgets, Qt, Signal, device_pixel_ratio, work_area
+from ..qt_compat import QtCore, QtGui, QtSvg, QtWidgets, Qt, Signal, device_pixel_ratio, inherit_fonts, work_area
 from ..ui_scale import pt, px
 from .theme_manager import tinted_svg
 
@@ -383,6 +383,10 @@ class ComboBox(QtWidgets.QComboBox):
         self.setCursor(Qt.PointingHandCursor)
 
     def showPopup(self):
+        # The list is polished by its style sheet rule at its first show (Qt 5: 9 pt item view font). Polish it now and
+        # give it the interface size first, so the popup is measured with the right rows.
+        self.view().ensurePolished()
+        inherit_fonts(self.view().window())
         QtWidgets.QComboBox.showPopup(self)
         popup = self.view().window()
         area = work_area(self.mapToGlobal(QtCore.QPoint(0, 0))) or popup.geometry()

@@ -27,6 +27,13 @@ balloon, background job with progress, Settings, About, Logs, collapse and resto
 inside Max during preparation; its parts were host-tested inside Max 2022 and 2027 as TerraScoop. No TerraScoop
 domain code, icons, map data or brand assets are included.
 
+Version 1.1.1 (2026-10-28) carries TerraScoop commit `119baa5`: `repolish` gives a widget its interface-size font back
+after polishing it (TerraScoop's search field and Build button fell to 9 pt at 125 / 150 %), and `ComboBox.showPopup`
+fixes its list's font before Qt measures it. The starter was regenerated from those modules (only `qt-compat` and
+`controls` changed) and run again outside Max on both bindings with a font scan after a dropdown and two variant
+changes: 0 widgets at a default size (the 1.1.0 starter left the repolished button at 8.25 / 9 pt). The same fix was
+checked inside 3ds Max 2022 and 2027 as TerraScoop (every dialog, a dropdown and the search suggestions at 125 %).
+
 ## Max Ultra MCP (version 1.0)
 
 Read-only source inspection on 2026-10-13 used the Max Ultra MCP checkout at commit `8c364294e1b5f9cb0aed778ba8aaac91f3015070` with a clean working tree. Paths below identify reference files. The inspected source credits Lukianenko Vasyl / 3DGROUND. Instructions and examples are a newly written synthesis; seven theme JSON files are byte-preserved snapshots included at the user's explicit request. See [palette provenance](palettes.md). No general product sublicense is asserted. A user does not need that checkout to follow this skill.
