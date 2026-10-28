@@ -42,11 +42,39 @@ Cover:
 
 Keep focused regression cases for [the documented bugs](regression-checks.md), not a combinatorial screenshot explosion. Expand combinations where failures reveal a dependency. Store unique artifact names containing runtime, theme, size, scale and state so one run cannot overwrite another's evidence.
 
+## Standalone harness with Max's own Python
+
+The cheapest real test of the UI runs the tool **outside Max with the Python and PySide that Max ships**, so a crash
+cannot take down a user's Max and the bindings are exactly the host's:
+
+- Interpreter: `<Max>\Python\python.exe` (2025+) or `<Max>\Python37\python.exe` (2022). Put the Max folder on `PATH`
+  and `os.add_dll_directory`, set `QT_PLUGIN_PATH` to `<Max>\qt\plugins`. Max 2022's Qt 5.15 WebEngine finds its
+  resources only through a `qt.conf` beside the executable: run 2022 from a private copy of `Python37` with its own
+  `qt.conf` (Program Files is read-only).
+- Before importing the tool: `sys.modules["qtmax"] = None` and `sys.modules["pymxs"] = None` (importing them outside Max
+  crashes; `None` makes the import raise `ImportError`, which the tool treats as "not inside Max"), point
+  `LOCALAPPDATA` at a temporary folder (settings and logs of the test never touch the user's), enable faulthandler into
+  the report file, create the `QApplication` (only outside Max), start the controller.
+- Drive it with timed steps (`QTimer.singleShot`): open each dialog, run a job, collapse and restore, switch theme, then
+  `request_stop()` and quit. Write a report line per step; give the process a safety timeout.
+- Pass flags for special starts: a pre-written start guard file and crash log for a "crashed last time" start, a stand-in
+  host window for the collapsed bar's following, a dead screen object for the screen lookup fallbacks.
+- **Screenshots: grab the tool's own windows** (`widget.grab()`, several windows painted at their places on a neutral
+  backdrop). Never capture the screen: it takes whatever else the user has open. Round the frameless main window's
+  corners in the picture as Windows 11 shows them. Review the pictures at native size and zoom into details (scroll
+  thumbs, 1 px borders, corners).
+- Record per run: interpreter, binding and Qt versions, interface size, fonts of a few widget kinds (they must match).
+
+The harness cannot show Max parenting, Max hotkeys, viewport rectangles or host crashes; repeat the essential steps in
+Max through MCP.
+
 ## Real-Max testing with MCP
 
 For generated tools, real-Max verification is required when an authorized isolated host is available. Use Max Ultra MCP: list instances first, explicitly select the only instance or the uniquely identified disposable fixture instance, and resolve ambiguity before actions. Inspect capabilities and runtime versions with read-only calls. Use available MaxScript execution/file execution tools to run the generated `.ms` entry point on the main thread; do not assume a tool name or argument schema without discovering it.
 
 Verify launch/relaunch while visible, hidden, working and stopping. Count owned windows/timers/callbacks and prove old callbacks stop firing. Open Settings and other tool dialogs, apply themes, interact with menus, and obtain screenshots of the **tool windows**, not merely an unrelated viewport. Use Max-owned UI capture or an approved capture capability; a `QWidget.grab()` fixture image is useful but may omit native chrome/shadows. Review actual pixels for modal stacking and focus if capture cannot show them reliably. Test operation failures and cleanup without real scene data.
+
+Host fixtures that cannot avoid the user's Max: back up the tool's settings file first and diff it after; use the settings object's session-only overrides for every key a fixture changes (never write test values to the user's file); block signals or restore values on controls the fixture changes; before touching the window, check that no job runs; stop the tool before writing a start-guard file (a stopping session writes "stopped" over it); put each window action in its own timer step (pymxs calls inside one step can run other pending timers); afterwards put back what was changed (window places, Max's window state, frozen collector objects with `gc.unfreeze()`). While a build or other heavy work runs in a host, do not run UI Automation walks or grab windows (a Max 2022 crash coincided with both). Never send keystrokes to a user's Max.
 
 If only a user's working scene is available and isolation cannot be established, do not alter/reset it to run a fixture. Complete pure and standalone tests and report the host-test blocker. Do not claim PySide2/Qt5 coverage from a PySide6 run, or future-version compatibility from import fallback alone.
 

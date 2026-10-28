@@ -1,5 +1,34 @@
 # Inspected source and limits
 
+## TerraScoop (version 1.1.0 of this skill)
+
+The window, controls, dialogs, interface size, Max reliability lessons and starter templates added in 1.1.0 come from
+TerraScoop, a free Python + Qt tool for 3ds Max 2022-2027 by the same author (repository `maxpkg-dev/terra-scoop`):
+release 1.3.7 at commit `9a64463` and the collapsed bar's following at commit `1b58c6b` (2026-10-28). The owner
+authorized moving its UI and mechanics into this skill and publishing it on 2026-10-28.
+
+| TerraScoop source | Carried into the skill as |
+| --- | --- |
+| `ui/main_window.py` title bar, edges, collapsed bar, `follow_host`, status bar | [tool-window template](templates/tool-window.md), [windows](window-chrome.md) |
+| `ui/controls.py`, `ui/style.qss`, `ui/theme_manager.py`, `themes.py` | [controls](templates/controls.md), [themes-style](templates/themes-style.md), [controls catalog](controls-catalog.md) |
+| `ui/dialogs.py` Settings, Logs, About; donate placement | [dialogs](templates/dialogs.md), [Settings, Logs, About and Donate](settings-about-logs-donate.md) |
+| `ui_scale.py`, `qt_compat.measure_scale / scale_font / inherit_fonts` | [ui-scale](templates/ui-scale.md), [interface size](interface-size.md) |
+| `startguard.py`, `gcprobe.py`, `controller.py` (GIL pump, GC hold), `workers.py`, `logs.py`, `bootstrap.py` | [startguard-gcprobe](templates/startguard-gcprobe.md), [controller-workers](templates/controller-workers.md), [logs](templates/logs.md), [launcher-bootstrap](templates/launcher-bootstrap.md) |
+| `.agents/pitfalls.md` (failures in Max 2022-2027 and users' Max 2024 / 2026 reports) | [Max reliability](max-reliability.md), testing and MaxPkg lessons |
+
+The starter was assembled from those modules with TerraScoop-specific parts removed (map, build card, promotion link,
+domain settings), generalized names (`mytool`, `MyTool`, `tool` object names), the window and controller rewritten as
+reusable bases, and three improvements found while assembling it: a corner mask where DWM rounding is unavailable,
+`inherit_fonts` after polish in the main window and against each widget's class default font (lists kept 9 pt
+otherwise), and thin pill scroll bars whose radius stays half the thumb after scaling. It was run as one project outside
+Max with Max 2022's Python 3.7.9 / PySide2 5.15.1 and Max 2027's Python 3.13.9 / PySide6 6.8.3 (window, help
+balloon, background job with progress, Settings, About, Logs, collapse and restore, stop), and the reference pictures in
+`assets/` were taken from those runs (graphite and Max themes, 125 % interface size). The assembled starter was not run
+inside Max during preparation; its parts were host-tested inside Max 2022 and 2027 as TerraScoop. No TerraScoop
+domain code, icons, map data or brand assets are included.
+
+## Max Ultra MCP (version 1.0)
+
 Read-only source inspection on 2026-10-13 used the Max Ultra MCP checkout at commit `8c364294e1b5f9cb0aed778ba8aaac91f3015070` with a clean working tree. Paths below identify reference files. The inspected source credits Lukianenko Vasyl / 3DGROUND. Instructions and examples are a newly written synthesis; seven theme JSON files are byte-preserved snapshots included at the user's explicit request. See [palette provenance](palettes.md). No general product sublicense is asserted. A user does not need that checkout to follow this skill.
 
 The source was being developed concurrently: follow-up reads saw HEAD `513662305ad8ea6758f721e85cdcc6b73858902f` and uncommitted UI/fixture changes. The About recipe reflects the inspected `AboutWindow` working-tree implementation, not a claim that it belongs to the initial commit or a released build. No changes were made to that checkout by this preparation. Palette hashes identify the exact included snapshot independently of later source changes.

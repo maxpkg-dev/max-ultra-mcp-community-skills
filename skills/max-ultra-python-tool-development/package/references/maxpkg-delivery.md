@@ -61,6 +61,26 @@ Use Max Ultra MCP's available tools, inspecting schemas rather than assuming too
 
 Read each response before the next dependent call; do not paste a batch that ignores failed results. If no suitable Max connection, original tooling or usable public API is available, report that exact blocker. Leave the verified configured source project and remaining build action; never call it a built MZP. For an older API-less packager, prefer refreshing the official tooling after reviewing local conflicts; do not bypass this default API workflow with a homemade archive. Once prerequisites become available, resume the real build instead of assigning routine execution to the user.
 
+## Lessons from real releases
+
+From more than ten TerraScoop releases built through `MaxPkgPackerApi` in Max 2022 and 2027:
+
+- Load `maxpkg-packager.ms` in **its own** MCP call, then run the build script in a second call. In one block the global
+  `MaxPkgPackerApi` is resolved before `fileIn` runs ("Unknown property: ping in undefined").
+- `setOption "version"` opens a new version section with defaults: set `releaseChannel`, `min3dsMax` and `releaseDate`
+  again after it, then add that version's changelog items. Read `manifest.json` from the built MZP before installing.
+- The file list is explicit: every new runtime file (module, icon, theme) needs `addFile` at the next release. Keep a
+  "files created since the last release" list in the project's packaging notes and compare the packaged inventory with
+  `git ls-files` of the runtime folders (an inspection script that reports size, SHA-256, runtime files, mismatches,
+  missing files, other entries and the manifest's version / channel / Max range / entry).
+- An update installed over an older version keeps files the new version dropped: never discover runtime files by listing
+  folders in a way an old leftover could break.
+- Install test: `fileIn` the MZP in a Max where the user agreed, run the generated macro (`macros.run "MaxPkg"
+  "MaxPkg_<guid without dashes>"`), check that the session runs from `$temp\<GUID>` with the new version and its new
+  files, then close it (or relaunch the developer copy that ran before).
+- Build only when the owner says "release"; keep the packager INI files and changelog in the release commit; push only on
+  request. Keep the GUID out of public text.
+
 ## Archive verification and acceptance
 
 Inspect the output as an archive without executing its installation scripts. Verify filename, version, identity and entry consistency across final `manifest.ini`, `manifest.json`, `maxpkg-changelog.ini`, `mzp.run` and `mzp.run.ms`; check both original hooks, selected custom hook declarations, generated macro targets and `icons/icon.svg`. Compare the actual file inventory against the reviewed allowlist and remapped layout, including Python modules, theme files, icons and licenses. Reject unexpected/private/dev files and unsafe or case-conflicting paths. Record the output size and checksum and confirm no unintended source changes. Do not patch the output archive to fix a bad build; fix configuration/source and rebuild through the original packager.

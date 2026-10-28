@@ -113,17 +113,16 @@ Applying this to the full text-area owner clips its viewport children too; if cl
 
 For dropdown placement after `super().showPopup()`, obtain `popup = combo.view().window()`. Choose `field_bottom + 4` if the popup fits the active screen's `availableGeometry()`, otherwise `field_top - popup_height - 4`. Clamp both axes; reduce the popup height/use scrolling if neither side fits. Apply the rounded mask to the popup, not just its list view, and keep keyboard focus there. On very small work areas, remaining onscreen takes priority over the gap.
 
-Scrollbar clearing rules to combine with themed rounded tracks/handles:
+Scroll bars: thin, no visible track, a pill thumb whose radius is exactly half its width (the standard of
+[controls catalog](controls-catalog.md)), with the clearing rules:
 
 ```css
-QScrollBar:vertical { width:13px; background:@scroll_track; border:none;
-  border-radius:6px; margin:0; }
-QScrollBar:horizontal { height:13px; background:@scroll_track; border:none;
-  border-radius:6px; margin:0; }
-QScrollBar::handle:vertical { background:@scroll_thumb; min-height:24px;
-  border-radius:4px; margin:2px; }
-QScrollBar::handle:horizontal { background:@scroll_thumb; min-width:24px;
-  border-radius:4px; margin:2px; }
+QScrollBar:vertical { width:10px; background:transparent; border:none; margin:0px; }
+QScrollBar:horizontal { height:10px; background:transparent; border:none; margin:0px; }
+QScrollBar::handle:vertical { background:@scroll_thumb; min-height:28px;
+  border-radius:3px; margin:2px; }
+QScrollBar::handle:horizontal { background:@scroll_thumb; min-width:28px;
+  border-radius:3px; margin:2px; }
 QScrollBar::handle:hover { background:@scroll_hover; }
 QScrollBar::handle:pressed { background:@scroll_pressed; }
 QScrollBar::add-page, QScrollBar::sub-page { background:none; border:none; }
@@ -135,7 +134,7 @@ QWidget#qt_scrollarea_vcontainer, QWidget#qt_scrollarea_hcontainer {
 QAbstractScrollArea::corner { background:transparent; border:none; }
 ```
 
-These Qt internal object names are observed in the reference, not a guarantee for every host style. Verify the actual background containers on each supported binding.
+These Qt internal object names are observed in the reference, not a guarantee for every host style. Verify the actual background containers on each supported binding. Qt draws a square thumb when the radius exceeds half the thumb's width, and a scaled style sheet rounds every number on its own: keep bar width, margin and radius in a ratio that survives 125 % and 150 % (10 / 2 / 3 does).
 
 For user-approved responsive density, generate both axis thicknesses and compatible radii/margins from one density token set. The reference uses 7px tiny, 9px compact, 13px normal, 17px large and 21px extra-large tracks; tiny/compact handles have 1px margins and 2px radii. These are examples, not mandatory thresholds or an accessibility guarantee. Keep a usable thumb hit region and minimum length; after changing dynamic density properties, unpolish/polish the scrollbar and call `updateGeometry()`. Restore the normal token set when resizing back. Without opt-in, use one stable thickness plus ordinary DPI scaling. Explicitly style disabled handles if the tool uses disabled scroll areas.
 

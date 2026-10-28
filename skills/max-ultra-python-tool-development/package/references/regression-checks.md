@@ -31,5 +31,16 @@ Run checks relevant to the generated tool, with pure/mocked and real-host result
 | Sort numerical/date/version/text columns both directions | Visible direction agrees with typed ordering; missing values deterministic; selected identity retained after repopulation |
 | Status, selected and disabled states in every theme | Meaning readable beyond color; warning/error/success distinct; disabled actions neither clickable nor misleadingly hover-highlighted |
 | Multi-monitor restore and optional native effects | Window remains reachable after monitor/DPI changes; unavailable shadows/rounding do not prevent startup |
+| Title bar drag, double-click, edge resize | Moves; maximises and restores; dragging a maximised window restores it under the cursor; edges resize with the right cursor and never below the minimum |
+| Rounded corners | Windows 11: DWM rounding and a theme-coloured border; elsewhere a rounded mask; maximised square; safe mode neither; startup never fails because of them |
+| Collapse / restore ten times | Same place and size every time; bar 8 px inside the active viewport's bottom-left corner when never placed; a dragged bar comes back where it was put |
+| Collapsed bar at screen edges and with taskbar changes | Never under the taskbar or off the monitors; confined again when a screen is added, removed or its work area changes |
+| Max's window moved, maximised, sent to another display, minimised | Bar keeps its distance to Max's edges and follows; unplaced bar re-docks in the viewport corner after Max stops; a bar placed away from Max stays; after Max is minimised and restored the bar is where it was (no jump to -32000); no timer runs while Max stands still |
+| Interface size on Full HD, 2K, 4K and with a Settings choice | Window, paddings, icons and fonts grow together (100 / 125 / 150 %); labels, checkboxes, fields and lists have the same font size; scroll thumbs stay pills at 100 / 125 / 150 / 200 % |
+| Start after a crash at each start step | Report with the step, versions and crash-log tail in the Listener; safe mode and status line; a new version starts normally |
+| Start after a crash marked "Garbage-collecting" and on PySide2 + Python 3.10 | Collector disabled while the tool runs; frozen and enabled on close; `gcprobe.run()` reports through the next start |
+| Screen wrapper or style wrapper dead | Start succeeds with the screen lookup fallbacks and `repolish`; no `widget.screen()` call anywhere |
+| Background job inside Max | Progress advances while Max is idle (GIL pump running only during jobs); cancel and close during the job ask first and stop it |
+| Donate destination empty / set | No Donate button anywhere / last in the status bar and left in About, opening the browser only on click |
 
 Report exact Max build, Python, Qt/PySide versions, OS/DPI, scenarios exercised, observed result, and remaining failures. Screenshot evidence helps visual checks; resource counts or callbacks observed over multiple cycles help lifecycle checks. Standalone Qt fixtures cannot establish host ownership, Max focus, or scene safety. No design system can guarantee perfect rendering in every host and display configuration.
