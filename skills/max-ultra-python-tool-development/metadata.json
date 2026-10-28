@@ -3,7 +3,7 @@
   "id": "max-ultra-python-tool-development",
   "title": "Python and Qt Tool Development for 3ds Max",
   "version": "1.1.1",
-  "publishedVersion": "1.1.0",
+  "publishedVersion": "1.1.1",
   "category": "Other",
   "purpose": "Develop Python and Qt tools for 3ds Max from verified starter templates: MaxScript launcher, safe restart, frameless window with rounded corners and a collapsed bar that follows Max, themed shared controls, Settings / Logs / About / Donate, interface size for 2K and 4K screens, crash-safe start, layered testing and official MaxPkg MZP delivery.",
   "usage": {
@@ -58,9 +58,9 @@
     "title": "Python and Qt Tool Development for 3ds Max",
     "description": "Develop Python and Qt tools for 3ds Max from verified starter templates: MaxScript launcher, safe restart, frameless window with rounded corners and a collapsed bar that follows Max, themed shared controls, Settings / Logs / About / Donate, interface size for 2K and 4K screens, crash-safe start, layered testing and official MaxPkg MZP delivery.",
     "author": "Lukianenko Vasyl / 3DGROUND",
-    "version": "1.1.0",
-    "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-python-tool-development-v1.1.0/max-ultra-python-tool-development-1.1.0-max-ultra-mcp.zip",
-    "sha256": "d81c26db2ae042e35a9d4732a378f21c4eaf858115879bc0f6a6794e96fb9083",
-    "sizeBytes": 760282
+    "version": "1.1.1",
+    "downloadUrl": "https://github.com/maxpkg-dev/max-ultra-mcp-community-skills/releases/download/max-ultra-python-tool-development-v1.1.1/max-ultra-python-tool-development-1.1.1-max-ultra-mcp.zip",
+    "sha256": "82c5c13f790fa194757dd90ade74af03d03c7945ef58481cbc21656994f89680",
+    "sizeBytes": 762968
   }
 }
