@@ -1,18 +1,22 @@
 # Template: Launcher and bootstrap
 
-The thin `.ms` entry point and the Python bootstrap that starts one session, or stops the previous one on a Qt timer and then starts a fresh one. The anchor module in `sys.modules` lives outside the reloadable package.
+The thin `.ms` entry point and the Python bootstrap that starts one session, or stops the previous one on a Qt timer and then starts a fresh one. The anchor module in `sys.modules` lives outside the reloadable package. The bootstrap starts the newest copy of the tool (next to the launcher, or a self-update in the user profile) and rolls back a freshly updated version that cannot start.
 
 Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project outside 3ds Max with Max 2022's Python 3.7.9 / PySide2 5.15.1 and Max 2027's Python 3.13.9 / PySide6 6.8.3.
 
 ## `StartMyTool.ms`
 
 ```maxscript
--- MyTool launcher. Starts (or cleanly restarts) the Python tool inside 3ds Max.
+-- MyTool launcher. Starts (or cleanly restarts) the Python tool inside 3ds Max, and defines MyToolAPI (MyToolAPI.ms)
+-- so scripts and AI assistants can use the tool's operations without its window.
 (
     local entryPath = getThisScriptFileName()
-    local bootstrapPath = (getFilenamePath entryPath) + @"python\bootstrap.py"
+    local folder = getFilenamePath entryPath
+    local bootstrapPath = folder + @"python\bootstrap.py"
     if not doesFileExist bootstrapPath do
         throw "MyTool bootstrap is missing. Restore the complete tool folder."
+    if doesFileExist (folder + "MyToolAPI.ms") do
+        fileIn (folder + "MyToolAPI.ms")  -- Only defines MyToolAPI; loads nothing until its first call
     python.ExecuteFile bootstrapPath
 )
 ```
@@ -25,11 +29,18 @@ Copy into the tool's project at the shown path and rename as described in [start
 The session anchor lives in sys.modules["_mytool_session"], outside the reloadable package, so a
 relaunch can find the previous owner, ask it to stop, wait for it on a Qt timer (never sleeping on the
 main thread), then import fresh code and start exactly one replacement.
+
+It starts the newest copy of the tool: the one next to the launcher (installed by MaxPkg) or one installed by a
+self-update in %LOCALAPPDATA%/MyTool/app (updater.py). A freshly updated version that cannot start rolls back to
+the previous one, or to the copy next to the launcher. This file itself is not updated by a self-update: keep it
+compatible with newer packages.
 """
 
 import importlib
 import importlib.util
+import json
 import os
+import re
 import sys
 import time
 import traceback
@@ -38,6 +49,60 @@ import types
 PACKAGE = "mytool"
 ANCHOR = "_mytool_session"
 STOP_TIMEOUT = 15.0
+TOOL_FOLDER = "MyTool"  # settings.user_data_dir(): %LOCALAPPDATA%\MyTool
+LAUNCHER_ROOT_VARIABLE = "MYTOOL_LAUNCHER_ROOT"  # Tells the controller where the launcher is (Reopen)
+
+
+def app_home():
+    return os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), TOOL_FOLDER, "app")
+
+
+def _version_of(root):
+    """The package version of a copy of the tool, read from its __init__.py without importing it."""
+    try:
+        with open(os.path.join(root, "python", PACKAGE, "__init__.py"), "r", encoding="utf-8") as handle:
+            match = re.search(r"^__version__\s*=\s*['\"]{1}([^'\"]+)['\"]", handle.read(), re.M)
+    except OSError:
+        return (0, 0, 0)
+    parts = re.findall(r"\d+", match.group(1))[:3] if match else []
+    return tuple(int(part) for part in parts) + (0,) * (3 - len(parts))
+
+
+def pick_root(bundled, home=None):
+    """The copy to start: the installed update when it is newer than the copy next to the launcher, else that copy
+    (MaxPkg may have installed a newer one there since)."""
+    home = home or app_home()
+    try:
+        with open(os.path.join(home, "current.json"), "r", encoding="utf-8") as handle:
+            state = json.load(handle)
+        installed = os.path.join(home, state["dir"])
+        if os.path.isfile(os.path.join(installed, "python", "bootstrap.py")) and \
+                _version_of(installed) > _version_of(bundled):
+            return installed
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return bundled
+
+
+def _roll_back(root, bundled, home=None):
+    """A freshly updated version that cannot start: the previous installed version becomes current (or none, so the
+    copy next to the launcher starts). Returns the folder to start instead, or None."""
+    home = home or app_home()
+    if os.path.normcase(os.path.abspath(root)) == os.path.normcase(os.path.abspath(bundled)):
+        return None  # The copy next to the launcher failed: nothing to roll back to.
+    try:
+        spec = importlib.util.spec_from_file_location("_mytool_rollback",
+                                                      os.path.join(root, "python", PACKAGE, "updater.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        state = module.read_current(home)
+        if not state or state.get("dir") != os.path.basename(root) or not module.rollback(home):
+            return None
+        _report("this version could not start; going back to the previous version.")
+        return pick_root(bundled, home)
+    except Exception:
+        _report("rollback failed:\n" + traceback.format_exc())
+        return None
 
 
 def _qtcore():
@@ -68,7 +133,9 @@ def _import_fresh(root):
     return importlib.import_module(PACKAGE + ".controller")
 
 
-def _start_new(state, root):
+def _start_new(state, bundled, retry=True):
+    root = pick_root(bundled)
+    os.environ[LAUNCHER_ROOT_VARIABLE] = bundled
     candidate = None
     try:
         controller = _import_fresh(root)
@@ -83,6 +150,8 @@ def _start_new(state, root):
                 candidate.poll_stop()
             except Exception:
                 _report("cleanup after failed start also failed:\n" + traceback.format_exc())
+        if retry and _roll_back(root, bundled) is not None:
+            _start_new(state, bundled, retry=False)  # Once: the previous version, or the copy next to the launcher
 
 
 def launch(root):
@@ -154,5 +223,6 @@ def launch(root):
     timer.start(50)
 
 
-launch(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if not globals().get("_MYTOOL_IMPORT_ONLY"):  # api_entry.py loads this file for pick_root only, without a window
+    launch(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ```

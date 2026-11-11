@@ -138,6 +138,62 @@ These Qt internal object names are observed in the reference, not a guarantee fo
 
 For user-approved responsive density, generate both axis thicknesses and compatible radii/margins from one density token set. The reference uses 7px tiny, 9px compact, 13px normal, 17px large and 21px extra-large tracks; tiny/compact handles have 1px margins and 2px radii. These are examples, not mandatory thresholds or an accessibility guarantee. Keep a usable thumb hit region and minimum length; after changing dynamic density properties, unpolish/polish the scrollbar and call `updateGeometry()`. Restore the normal token set when resizing back. Without opt-in, use one stable thickness plus ordinary DPI scaling. Explicitly style disabled handles if the tool uses disabled scroll areas.
 
+## Light shadows on masked popups
+
+Windows' small popup shadow (`CS_DROPSHADOW`) follows a window's mask, so a masked bubble gets a soft shadow with its
+rounded corners and arrow without any translucent window. Qt decides per window class:
+
+- A `Qt.Popup` gets it unless `Qt.NoDropShadowWindowHint` is set: the help balloon simply leaves the hint out (its
+  window class becomes `Qt...QWindowPopupDropShadowSaveBits`).
+- A `Qt.ToolTip` gets it only when the widget's class inherits a class named `QTipLabel` (Qt sets its internal
+  drop-shadow property only for `QTipLabel` and `QAlphaWidget`); leaving the hint out alone gives nothing. Give the
+  bubble an empty base:
+
+```python
+class QTipLabel(QtWidgets.QWidget):
+    """Base of the tool's tooltip windows. The name is on purpose: Qt gives Windows' popup shadow only to tooltip
+    windows whose class inherits "QTipLabel". Style sheets still match the subclass's own name."""
+
+
+class ErrorTip(QTipLabel, Themed):
+    def __init__(self, theme, parent=None):
+        QTipLabel.__init__(self, parent, Qt.ToolTip | Qt.FramelessWindowHint)
+```
+
+Style sheets map only an exact class name `QTipLabel` to the `QToolTip` selector, so the subclass keeps its own look;
+never name the bubble class itself `QTipLabel`. Checked in Qt 5.15.1 (3ds Max 2022) and 6.8.3 (3ds Max 2027) by
+reading the window class style (`GetClassLongW(hwnd, GCL_STYLE) & 0x20000`) and in screen grabs, also while the bubble
+is transparent for the mouse (layered) and fading in. The shadow follows the Windows setting "Show shadows under
+windows". The colour picker is a `Qt.Popup` without the hint as well. Keep `NoDropShadowWindowHint` on menus,
+dropdown lists and the calendar unless the owner asks otherwise.
+
+## Outlines on masked popups
+
+A popup inside Max is shaped by a window mask (`setMask` with the shape's fill polygon), never by a translucent
+window. Qt strokes a path centred on its edge: with `drawPath(shape)` and a 1 px pen, half of the line lies outside the
+shape, where the mask (and the widget's right and bottom edges) cut it away. The result is a bubble with an edge on
+the left and the top but none on the right, at the bottom and along the arrow; `translated(0.5, 0.5)` only moves the
+loss to other sides. Draw the outline along the inside instead: clip to the shape, fill it, then stroke the same path
+with a pen twice as wide and a miter join (the clip keeps the inner half, the arrow's point keeps its outline):
+
+```python
+def paint_bubble(painter, shape, fill, border, width=1.0):
+    painter.save()
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setClipPath(shape)
+    painter.fillPath(shape, QtGui.QColor(fill))
+    pen = QtGui.QPen(QtGui.QColor(border), 2.0 * width)
+    pen.setJoinStyle(Qt.MiterJoin)
+    painter.strokePath(shape, pen)
+    painter.restore()
+```
+
+Build the mask from the same path (`QRegion(shape.toFillPolygon().toPolygon())`). Check it by rendering the popup
+(`grab()`) and reading the outermost pixel inside `mask()` on the left and right of every row, the top and bottom of
+the middle columns and down both sides of the arrow: it must be the border colour. Every class that calls
+`self.setMask(...)` and paints an outline goes through this helper; a window that only shades itself (the main
+window's fallback corner mask) does not need it.
+
 ## Copy and menu interaction
 
 Create one single-shot `QTimer(button)` with interval 2000. Store the original caption, accessible name, and a copied `QIcon`. The clicked slot obtains current text, writes the clipboard, sets `Copied` plus check icon, then calls `timer.start()`; the timeout restores originals. Do not allocate a fresh unowned singleShot closure on every click.
@@ -145,6 +201,14 @@ Create one single-shot `QTimer(button)` with interval 2000. Store the original c
 For list context menus, get the target item under the pointer without changing selection. If native right-button handling changes current selection before `contextMenuEvent`, intercept that button in a small view subclass or suppress the selection-to-load handler for that event. Build menu actions against the captured item ID. Trigger loading only from the explicitly selected menu action or normal left-click/keyboard activation. Merely opening, dismissing, or copying from a menu must not enter the document-loading path.
 
 For tables, store a typed sort key in a dedicated role instead of sorting formatted captions. For example, size `900` sorts before `1200`, dates sort by timestamp, and version `(1, 9, 0)` sorts before `(1, 10, 0)`. A `QSortFilterProxyModel.lessThan` or an item comparator can use those keys with a stable ID tie-breaker. Show and preserve the header's sort indicator; test both directions and missing data.
+
+## Drop targets
+
+A widget that refuses a drag in `dragEnterEvent` (`event.ignore()`) never gets the drag's move, leave or drop: a state
+it set on enter ("These files cannot be used") stays after the pointer has gone. Accept the enter without a drop
+action (`event.setDropAction(Qt.IgnoreAction)`, `event.accept()`), ignore the moves (the pointer shows "not allowed"),
+and reset the state in `dragLeaveEvent` and `dropEvent`. Check the files' endings in every event; never trust the
+enter alone.
 
 ## Progress and veils
 
@@ -290,7 +354,7 @@ This is a **new recommended pattern**, not a control implementation found in the
 - Draw original Lucide `chevron-up` and `chevron-down` into those subcontrol rectangles, colored by effective step-enabled/disabled state. Obtain geometry from `QStyleOptionSpinBox` and `subControlRect`, not arbitrary pixel fractions. Draw after the native control's field/text paint so editable text, focus and caret remain intact. Clip arrow-area backgrounds to the outer rounded path.
 - Prefer retaining native spin subcontrols for hit testing/repeat behavior while replacing their visual treatment. If using child tool buttons instead, disable native symbols, reserve margins, wire to `stepUp()`/`stepDown()`, and implement repeat, enablement and accessibility explicitly; this is more work and needs extra tests.
 - Respect minimum/maximum, step size, wrapping, decimals, locale, prefix/suffix, read-only state and validation. Use `stepEnabled()` flags for each arrow so one can be disabled independently. Do not call `setValue(value+1)` for every numeric type.
-- Preserve keyboard arrows, text editing, Enter/Tab and a documented wheel policy. Prefer changing on wheel only while focused to prevent accidental values during parent scrolling; route unfocused wheel events appropriately. Do not steal focus on repaint/theme change. Provide usable physical hit targets at 200%+ DPI; do not double-scale Qt logical geometry.
+- Preserve keyboard arrows, text editing and Enter/Tab. The wheel never changes the value, focused or not: ignore it so the parent page scrolls (the owner's rule: scrolling never changes a field). Do not steal focus on repaint/theme change. Provide usable physical hit targets at 200%+ DPI; do not double-scale Qt logical geometry.
 - Apply the same approach to date/time editors, editable combos, search clear buttons and other composites when used: one shared outer surface, compatible subcontrol states, original Lucide affordances and correct native interaction. These extensions also require their own tests.
 
 Validate integer and floating controls at bounds, repeated press, disabled/read-only, negative and fractional values, locale input, keyboard/wheel, 200%+ DPI, theme switching and screenshot clipping. Compare real values and signal counts, not just QSS text. Unavailable host/binding validation remains explicitly untested.

@@ -31,7 +31,7 @@ For unit tests, assert known examples and boundary outcomes: malformed/missing t
 
 Discover available Max installations/instances and record their actual Max build, `sys.version`, binding version and `QtCore.qVersion()`. Do not infer the embedded interpreter from a system Python. For every **available supported** runtime, run the relevant host fixtures; cover both PySide2/Qt5 and PySide6/Qt6 when available. Record unavailable combinations as not run, not passed. Do not install incompatible binary bindings into Max to manufacture coverage.
 
-For standalone rendering, use a Python interpreter compatible with the selected PySide wheel in a separate environment. A test harness may create its own `QApplication` only outside Max. Use an offscreen platform only where that binding/platform supports it; use a visible isolated test process for focus, popups or native effects when offscreen cannot represent them. Set test-only scale variables before application creation, never mutate the running user's Max DPI configuration. Record the effective device pixel ratio and logical DPI because requested scale is not proof of applied scale.
+Run Qt checks inside 3ds Max through Max Ultra MCP (below). Do not start a `QApplication` in the `python.exe` that ships with Max, outside Max: Max ships only the `windows` platform plugin (no `offscreen`), so an offscreen attempt shows a fatal Qt message box on the user's desktop, and a visible run puts windows in front of the user's work. Pure logic tests that import no Qt may run outside Max. Never mutate the running user's Max DPI configuration; record the effective device pixel ratio and logical DPI because requested scale is not proof of applied scale.
 
 Cover:
 
@@ -42,31 +42,72 @@ Cover:
 
 Keep focused regression cases for [the documented bugs](regression-checks.md), not a combinatorial screenshot explosion. Expand combinations where failures reveal a dependency. Store unique artifact names containing runtime, theme, size, scale and state so one run cannot overwrite another's evidence.
 
-## Standalone harness with Max's own Python
+## Interface harness inside 3ds Max
 
-The cheapest real test of the UI runs the tool **outside Max with the Python and PySide that Max ships**, so a crash
-cannot take down a user's Max and the bindings are exactly the host's:
+The real test of the UI runs the tool **inside 3ds Max through Max Ultra MCP**, on each available Max (PySide2 and
+PySide6), without showing anything to the user:
 
-- Interpreter: `<Max>\Python\python.exe` (2025+) or `<Max>\Python37\python.exe` (2022). Put the Max folder on `PATH`
-  and `os.add_dll_directory`, set `QT_PLUGIN_PATH` to `<Max>\qt\plugins`. Max 2022's Qt 5.15 WebEngine finds its
-  resources only through a `qt.conf` beside the executable: run 2022 from a private copy of `Python37` with its own
-  `qt.conf` (Program Files is read-only).
-- Before importing the tool: `sys.modules["qtmax"] = None` and `sys.modules["pymxs"] = None` (importing them outside Max
-  crashes; `None` makes the import raise `ImportError`, which the tool treats as "not inside Max"), point
-  `LOCALAPPDATA` at a temporary folder (settings and logs of the test never touch the user's), enable faulthandler into
-  the report file, create the `QApplication` (only outside Max), start the controller.
-- Drive it with timed steps (`QTimer.singleShot`): open each dialog, run a job, collapse and restore, switch theme, then
-  `request_stop()` and quit. Write a report line per step; give the process a safety timeout.
+- Start it with `max_execute` / `max_run_script` running `python.ExecuteFile @"...\harness.py"` in an explicitly selected
+  instance. The harness reads its settings (tool root, report folder, interface size) from a JSON file, never from the
+  user's settings.
+- Before importing the tool: load it from the test copy, redirect `settings.user_data_dir` to a scratch folder (the
+  user's own settings and logs are never touched), and install an application event filter that sets
+  `Qt.WA_DontShowOnScreen` on every window of the tool at its first polish: Qt shows and lays out the windows, nothing
+  appears on screen. Make `activateWindow` a no-op on the tool's window classes (never take Max's focus) and skip DWM
+  calls on off-screen windows.
+- Drive it with timed steps (`QTimer.singleShot`, Max's own event loop; nothing blocks): open each dialog, show
+  questions with `show()` instead of the blocking `exec`, run a job, collapse and restore, switch theme, then
+  `request_stop()`. Write a report line per step and "END" last; wait for that line from outside.
+- At the end undo every patch, remove the event filter and the path entry: the user's Max keeps nothing of the test
+  but a few unloaded modules.
 - Pass flags for special starts: a pre-written start guard file and crash log for a "crashed last time" start, a stand-in
   host window for the collapsed bar's following, a dead screen object for the screen lookup fallbacks.
-- **Screenshots: grab the tool's own windows** (`widget.grab()`, several windows painted at their places on a neutral
-  backdrop). Never capture the screen: it takes whatever else the user has open. Round the frameless main window's
+- **Screenshots: grab the tool's own windows** (`widget.grab()` works on off-screen windows; several windows painted
+  at their places on a neutral backdrop). Never capture the screen: it takes whatever else the user has open. Round the frameless main window's
   corners in the picture as Windows 11 shows them. Review the pictures at native size and zoom into details (scroll
   thumbs, 1 px borders, corners).
-- Record per run: interpreter, binding and Qt versions, interface size, fonts of a few widget kinds (they must match).
+- Record per run: interpreter, binding and Qt versions, interface size, fonts of a few widget kinds (they must match),
+  again after a theme change, inside an open menu and in About.
+- **Never move the user's mouse** (`QCursor.setPos`) and never send keys or clicks to the user's windows. Code that
+  reads the pointer takes the position from a replaceable function (`ErrorHints.cursor_pos`); the test gives its own
+  and sends the event itself (`QEvent.Enter`). Open popups through their methods (`HelpButton.toggle`,
+  `DateField._open`, `ComboBox.showPopup`, `QMenu.popup` instead of the blocking `exec`).
+- Keep the run's own paths out of pictures and logs: a log record or traceback shown in a screenshot must not carry a
+  real user folder (write synthetic records, rewrite the install path in the test's log handler).
 
 The harness cannot show Max parenting, Max hotkeys, viewport rectangles or host crashes; repeat the essential steps in
 Max through MCP.
+
+### Running checks in the Max the user works in
+
+The interface harness installs an application-wide event filter that keeps windows off screen and replaces the
+tool's modules while it runs. In a Max where the user runs a copy of the same tool (a demo, the trainer), it must
+hide only the windows of its own classes (compare the class with the one its module now holds) and put the user's
+modules back in `sys.modules` at the end; otherwise a dialog the user opens during or after the run is invisible and
+its veil locks the window. Prefer a second Max for checks while the user tests by hand, and relaunch the user's copy
+afterwards.
+
+### Keys and tooltips in a fresh Max
+
+A fresh 3ds Max session takes an Esc sent with `sendEvent` to a widget that does not have the keyboard focus (the
+off-screen test windows have none), and every ToolTip event, at the application level: the widget never sees them.
+Checks of an Esc handler call the widget's `keyPressEvent` directly; checks of a tooltip send Enter and call the
+keeper's `show_for` (what the hover delay does). A run in a Max where a tool window had the focus may pass either way,
+so a check that passes there proves nothing about a fresh session.
+
+### Keep test scripts ASCII
+
+`python.ExecuteFile` in 3ds Max 2022 read a UTF-8 test script in the system code page: a literal "…" in a check became
+"â€¦", and the check passed against its own garbled text while the picture showed it. Write non-ASCII characters in
+test scripts as escapes (`"Refreshing\u2026"`); the tool's own modules are imported as UTF-8 and may keep them.
+
+### When Max dies without a traceback
+
+A native crash (Windows event log: `3dsmax.exe`, exception `0xc0000374` or `0xc0000005`) leaves no Python traceback
+and often no faulthandler dump. Find it by bisection inside a Max that holds no user work: build each new widget in
+its own hidden window with flushed markers, then the whole window with parts switched off by halves, then the suspect
+part by part (see [Max reliability](max-reliability.md#qt-objects-that-took-max-down)). Never bisect in the user's own
+Max session or with their tool window open.
 
 ## Real-Max testing with MCP
 

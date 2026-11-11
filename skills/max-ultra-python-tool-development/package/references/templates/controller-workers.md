@@ -2,7 +2,7 @@
 
 The session owner (start / request_stop / poll_stop / is_stopped), the cleanup ledger, the main-thread poster, the GIL pump that lets worker threads run inside Max, the garbage-collector hold for Max 2024, and the thread pool runner.
 
-Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project outside 3ds Max with Max 2022's Python 3.7.9 / PySide2 5.15.1 and Max 2027's Python 3.13.9 / PySide6 6.8.3.
+Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project inside 3ds Max 2022 (Python 3.7.9 / PySide2 5.15.1) and 3ds Max 2027 (Python 3.13.9 / PySide6 6.8.3) through Max Ultra MCP, with the windows off screen.
 
 ## `python/mytool/controller.py`
 
@@ -19,7 +19,7 @@ import platform
 import sys
 import time
 
-from . import TOOL_NAME, __version__, logs, qt_compat, settings, startguard
+from . import TOOL_NAME, UPDATE_URL, __version__, donation, logs, qt_compat, settings, startguard, updater
 from .qt_compat import QtCore, QtWidgets, Signal, is_valid, max_main_window
 from .workers import JobRunner
 
@@ -129,6 +129,7 @@ class Controller(object):
         self.state = "idle"
         self.cleanup = Cleanup()
         self.prefs = None
+        self.donations = None  # donation.Donations: when the tool offers a donation
         self.theme = None
         self.runner = None
         self.window = None
@@ -136,6 +137,10 @@ class Controller(object):
         self.guard = None
         self._job = None
         self._finalize_timer = None
+        self.updating = False
+        # The folder of the launcher (StartMyTool.ms). bootstrap.py may start a newer copy installed by a self-update
+        # from the user profile; Reopen always goes through the launcher.
+        self.launcher_root = os.environ.get("MYTOOL_LAUNCHER_ROOT") or root
 
     # Lifecycle ----------------------------------------------------------------------------------
     def start(self):
@@ -151,7 +156,7 @@ class Controller(object):
             host, max_version = "max{}".format(int(version[7])), str(version)
         except Exception:
             pass  # Outside Max (standalone harness).
-        logs.set_host(host)  # One log per Max version: two Max versions never share a file.
+        logs.set_host(host)  # Names each Max version's crash log; the day logs are shared (append and close).
         # Read what the last start left behind before the crash log opens a new session (startguard).
         self.guard = startguard.StartGuard(settings.user_data_dir(), host, __version__)
         if held is None and self.guard.gc_hold:
@@ -184,6 +189,8 @@ class Controller(object):
         self.prefs = settings.Settings().load()
         if self.prefs.load_error:
             _log.warning("Settings unreadable, defaults used: %s", self.prefs.load_error)
+        self.donations = donation.Donations(self.prefs, self._save_prefs)
+        self.donations.count_start()
         guard.step("scale")  # Interface size before any window exists: every size is multiplied by it.
         factors = qt_compat.measure_scale(max_main_window(), self.prefs.get("ui_scale") or "auto")
         _log.info("Interface size %d %% (auto %d %%)", factors["target"] * 100, factors["auto"] * 100)
@@ -216,6 +223,24 @@ class Controller(object):
     def _ready(self):
         if self.state == "running":
             self.guard.step("ready")
+            if UPDATE_URL and self.prefs.get("auto_update") and not self.guard.safe:
+                QtCore.QTimer.singleShot(2000, lambda: self.check_updates(None, automatic=True))
+            if self.prefs.get("starts") == 1 and not self.guard.safe:
+                QtCore.QTimer.singleShot(600, self._welcome)  # The first start only
+            elif self.donations.reminder_due() and not self.guard.safe:
+                QtCore.QTimer.singleShot(1500, self._remind_donation)  # After the window settled, never at once
+
+    def _welcome(self):
+        from .ui.dialogs import WELCOME_POINTS
+        if self.state == "running" and WELCOME_POINTS and not self.dialogs:
+            self.show_welcome()
+
+    def _remind_donation(self):
+        """The start reminder (donation.py): only while nothing else is open and no work runs."""
+        if self.state != "running" or self.dialogs or self._job is not None:
+            return
+        self.donations.mark_reminded()
+        self.show_support(reminder=True)
 
     def _dispose_window(self):
         for dialog in list(self.dialogs.values()):
@@ -292,7 +317,7 @@ class Controller(object):
             from pymxs import runtime as rt
         except ImportError:
             return False
-        script = os.path.join(self.root, "Start{}.ms".format(TOOL_NAME))
+        script = os.path.join(self.launcher_root, "Start{}.ms".format(TOOL_NAME))
         QtCore.QTimer.singleShot(0, lambda: rt.fileIn(script))  # After the click that asked for it returns.
         return True
 
@@ -308,6 +333,26 @@ class Controller(object):
 
     def show_about(self):
         self._show_dialog("about", lambda d: d.AboutDialog(self, self.window))
+
+    def show_welcome(self):
+        self._show_dialog("welcome", lambda d: d.WelcomeDialog(self, self.window))
+
+    def show_support(self, parent=None, reminder=False):
+        """The Support window (why a donation helps, Not now, Donate); `parent` when another dialog asks (About)."""
+        self._show_dialog("support", lambda d: d.SupportDialog(self, parent or self.window, reminder))
+
+    def reset_settings(self):
+        """Every setting back to its default (Settings > Reset). The counters of donation.py stay; the window keeps
+        its place until it closes. Returns the theme error or None."""
+        kept = {key: self.prefs.get(key) for key in ("starts", "successes", "donate_reminded_at")}
+        self.prefs.values = dict(settings.DEFAULTS, **kept)
+        self._save_prefs()
+        error = self.theme.select(settings.DEFAULTS["theme"])
+        if self.window is not None:
+            self.window.notify("Settings are back to their defaults.\nThe interface size applies when {} opens "
+                               "again.".format(TOOL_NAME), "success",
+                               action=("Reopen Now", "refresh-cw", self.reopen) if self.can_reopen() else None)
+        return error
 
     def _show_dialog(self, key, factory):
         from .ui import dialogs
@@ -341,22 +386,66 @@ class Controller(object):
                                        name="job")
         return self._job
 
+    # Updates ------------------------------------------------------------------------------------
+    def update_home(self):
+        """Where self-updates are installed (bootstrap.py starts the newest copy)."""
+        return updater.app_home(settings.user_data_dir())
+
+    def check_updates(self, on_done=None, automatic=False):
+        """Check UPDATE_URL in the background and install a newer version into the user profile.
+
+        on_done(result) gets {"version", "installed", "notes", "error"} on the main thread; without on_done the main
+        window shows the result (on_update_result). The running session is never modified: a new version starts when
+        the tool opens again. False when a check is already running or the tool is not running."""
+        if self.updating or self.runner is None or self.state != "running" or not UPDATE_URL:
+            return False
+        self.updating = True
+        home = self.update_home()
+
+        def work(cancel):
+            result = {"version": "", "installed": False, "notes": [], "error": ""}
+            try:
+                info = updater.fetch_info(UPDATE_URL, __version__)
+            except updater.UpdateError as error:  # Offline or not published: an expected, quiet outcome.
+                result["error"] = str(error)
+                return result
+            if info is None:
+                return result
+            result.update(version=info.version, notes=info.notes)
+            installed = updater.read_current(home) or {}
+            if installed.get("version") == info.version:
+                result["installed"] = True  # Installed earlier, starts at the next launch
+            elif not cancel.is_set():
+                updater.download_and_install(home, info)
+                result["installed"] = True
+            return result
+
+        def finished(value):
+            self.updating = False
+            if isinstance(value, Exception):
+                value = {"version": "", "installed": False, "notes": [], "error": str(value)}
+                _log.warning("Update failed: %s", value["error"])
+            elif value.get("version"):
+                _log.info("Update %s %s", value["version"], "installed" if value["installed"] else "available")
+            elif value.get("error") and not automatic:
+                _log.info("Update check: %s", value["error"])
+            if on_done is not None:
+                on_done(value)
+            if self.window is not None and is_valid(self.window):
+                self.window.on_update_result(value, automatic)
+
+        self.runner.submit(work, on_done=finished, on_error=finished, name="update")
+        return True
+
     def confirm_stop(self, reason="close"):
         """Ask before a close or relaunch would cancel running work. True = go ahead."""
         if self._job is None:
             return True
         window = self.window if self.window is not None and is_valid(self.window) else None
         action = "Relaunch" if reason == "relaunch" else "Close"
-        box = QtWidgets.QMessageBox(window)
-        box.setIcon(QtWidgets.QMessageBox.Warning)
-        box.setWindowTitle(TOOL_NAME)
-        box.setText("Work is running.")
-        box.setInformativeText("{} {} and cancel it?".format(action, TOOL_NAME))
-        stop = box.addButton("Cancel It and {}".format(action), QtWidgets.QMessageBox.DestructiveRole)
-        keep = box.addButton("Keep Working", QtWidgets.QMessageBox.RejectRole)
-        box.setDefaultButton(keep)
-        qt_compat.exec_dialog(box)
-        if box.clickedButton() is stop:
+        from .ui.dialogs import ask  # A question in the tool's own style, never a QMessageBox
+        if ask(self, window, TOOL_NAME, "Work is running.", "{} {} and cancel it?".format(action, TOOL_NAME),
+               "Cancel It and {}".format(action), "Keep Working"):
             self.runner.cancel(self._job)
             return True
         return False

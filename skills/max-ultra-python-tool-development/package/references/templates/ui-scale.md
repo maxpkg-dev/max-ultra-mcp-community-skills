@@ -1,6 +1,6 @@
 # Template: Interface size
 
-One factor for every pixel and point size: the screen step (Full HD 100 %, 2K 125 %, 4K 150 %, 5K+ 200 %) or Windows / Max scaling, whichever is larger; a Settings choice overrides it. Scales the style sheet too.
+One factor for every pixel and point size: the screen step (Full HD 100 %, 2K 125 %, 4K 150 %, 5K+ 200 %) or Windows / Max scaling, whichever is larger; a Settings choice overrides it. Scales the style sheet too. The spacing scale (`SPACE`, `space(n)`): every margin and gap is one of 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48 px, and any other value raises.
 
 Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project outside 3ds Max with Max 2022's Python 3.7.9 / PySide2 5.15.1 and Max 2027's Python 3.13.9 / PySide6 6.8.3.
 
@@ -67,6 +67,28 @@ def px(value):
     if value <= 0:
         return value
     return max(1, int(round(value * current["px"])))
+
+
+# The spacing scale, in logical px at interface size 100 %. Every margin, gap and padding of the tool is one of these
+# steps, as in any design system's space tokens; an in-between value (3, 5, 10, 11, 14, 18) is never used. What each
+# step is for:
+#   2   text lines that belong together (a title and its subtitle), stacked navigation buttons
+#   4   an icon and its counter, tight button pairs, a field's caption and the field
+#   6   a panel's title and its content, chips in a row, a caption and its hint
+#   8   controls in one row, a popup's inner margin, the buttons of a footer
+#   12  fields side by side, a panel's inner margin, panels in a column
+#   16  a dialog's or a page's margin, groups on a page
+#   20, 24  an empty state or a welcome window's margin
+#   32, 40, 48  hero areas
+SPACE = (0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48)
+
+
+def space(step):
+    """A step of the spacing scale (SPACE) in pixels at the current interface size. Any other value raises
+    ValueError, so an odd padding cannot slip in."""
+    if step not in SPACE:
+        raise ValueError("{} px is not on the spacing scale {}".format(step, SPACE))
+    return px(step)
 
 
 def pt(value):

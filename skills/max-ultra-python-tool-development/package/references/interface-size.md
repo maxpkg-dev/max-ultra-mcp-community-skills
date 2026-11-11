@@ -54,6 +54,12 @@ The interface size applies while windows are built. A changed choice shows "Appl
 - Check: open the window at 125 % or 150 % and compare the point size of a label, a checkbox, a field and a list; they
   must be equal unless one was set on purpose. Then open a dropdown and switch a button's variant twice, and check
   again: no visible widget may be left at a default size.
+- A theme change sets a new style sheet on every window, which re-polishes every widget: run `inherit_fonts` on each
+  window right after its `setStyleSheet` (`ThemeManager._apply`), or fields drop to 9 pt after the first theme change.
+- Popups (menus, balloons, the calendar, the error bubble) are windows and do not inherit the window's font: set it from
+  the parent window, and polish a menu's items before it is measured (`Menu.fit_fonts`).
+- Never give a widget an attribute named `font` (`self.font = monospace(...)`): it hides `QWidget.font()`, and the font
+  helpers fail with "'QFont' object is not callable" at any interface size other than 100 %.
 
 ## Responsive breakpoints are a different thing
 

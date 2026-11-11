@@ -47,6 +47,44 @@ Python and PySide2 outside Max did not, even with a collection every 300 ms. The
 - After `deleteLater`, a Python wrapper may outlive its C++ object: check `shiboken.isValid` (`is_valid`) before late
   callbacks touch widgets.
 
+## Events 3ds Max takes first
+
+3ds Max filters events for the whole application, before a widget's own event filters:
+
+- **ToolTip** events never reach a tool's widgets (both Max 2022 and 2027): a tool cannot restyle the tooltip from
+  that event. The tool's Tip follows Enter and Leave instead, and the text lives outside Qt's tooltip property so Max
+  shows nothing over it.
+- **Esc** (and other hotkeys) are taken unless the widget with the keyboard focus has Max's accelerators off. Every
+  window, dialog, popup and menu of the tool calls `qt_compat.own_keyboard` on itself and its children when it shows
+  (`DisableMaxAcceleratorsOnFocus`): the main window, dialogs, the calendar, the colour picker and its pipette, the
+  lightbox and menus. A popup created later than its window needs its own call.
+
+## Qt objects that took Max down
+
+- **Qt's own tooltip window, rounded by a mask.** To round the plain tooltips, a first try set a window mask on Qt's
+  tooltip label (`qtooltip_label`, a private `QTipLabel`) and installed an event filter object on it. 3ds Max 2022
+  died with an access violation in the next `QToolTip.showText` (the faulthandler dump named that line): Qt deletes
+  and recreates that label on its own schedule. Never touch Qt's tooltip window; the tool shows its own Tip
+  (`controls.Tip`, see the [controls catalog](controls-catalog.md#tooltips)).
+
+- **A completer owned by its own line edit.** The trainer's search field created `QCompleter(model, field)`, asked it
+  for its default popup and set it on the field. 3ds Max 2022 (PySide2 5.15.1) died with a heap corruption
+  (`0xc0000374` in `ntdll.dll`, no Python traceback, no faulthandler dump) in the first event-loop pass after the window
+  showed, or a moment after the window closed. Every widget built alone in a hidden window was fine; only the whole
+  window failed. The fix is TerraScoop's proven pattern: the completer and its model belong to the window
+  (`SearchBox(..., owner=window)`), the list view is created in Python and handed over with `setPopup`, the delegate
+  is set after it, and the popup gets the style sheet and font when it opens. The trainer then passed every check in
+  Max 2022 and stayed up after closing.
+- **An event filter called before `__init__` ends.** PySide6 (3ds Max 2027) runs a dialog's `eventFilter` while the
+  base class constructor is still building the title bar, before the subclass has created its own widgets: the
+  Support and message windows failed to open with "object has no attribute". In an `eventFilter`, read the subclass's
+  widgets with `getattr(self, "name", None)`, and assign a watched widget to its attribute before
+  `installEventFilter`. PySide2 (3ds Max 2022) never showed it, so a check in one Max version is not enough.
+- **How it was found:** build each new widget in its own hidden window inside Max with a marker written and flushed
+  (`os.fsync`) before and after each step; then build the whole window with sections switched off by halves; then
+  swap the suspect for a stand-in and switch its parts on one by one. The last marker names the step. Use a Max that
+  holds no user work for this; a native crash cannot be caught.
+
 ## Threads, the GIL and heavy work
 
 - 3ds Max keeps Python's GIL on its main thread while idle, so worker threads only advance while main-thread Python runs:
@@ -103,7 +141,9 @@ Python and PySide2 outside Max did not, even with a collection every 300 ms. The
 
 - Tool windows are owned by Max's main window: they hide while Max is minimised and come back with it. Minimised windows
   are parked at (-32000, -32000).
-- Logs per Max version (`logs.set_host("max2027")`): two Max versions running at once must not share a log file.
+- One log file per day, each record appended and the file closed again at once: two Max versions running at once can
+  share a day's file and Clear Logs can delete every file. The crash log stays per Max version
+  (`logs.set_host("max2027")`), because faulthandler keeps its file open.
 - Max's bundled `python.exe` ignores `PYTHONPATH`: tests insert the package path themselves.
 - Never `sys.exit()` / `raise SystemExit` in code that runs inside Max.
 - Keep the Python 3.7 floor if Max 2022 is supported, and compile with the oldest and newest interpreters before every
