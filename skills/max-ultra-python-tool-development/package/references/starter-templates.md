@@ -29,6 +29,12 @@ wizard steps, the busy overlay, result cards, empty states, soft edges on scroll
 prompts, Settings as tabs or as a list, the welcome window and every donation offer ([donations](donations.md)). Every
 margin and gap is on one spacing scale. It is a gallery to choose from, not a layout to copy.
 
+Version 1.3.0 adds the confetti burst approved in MaxPkg Packager's installer (`ui/confetti.py`): the result card
+bursts from its success sign with `celebrate=True`, and the trainer's Feedback section plays it from **Success With
+Confetti** and **Burst From Here**. It also adds the Before / After compare slider of the MaxPkg Package Manager
+(`gallery.CompareSlider`), shown in the trainer's Cards & Gallery section. Both were checked inside 3ds Max 2022 and
+2027 (see [evidence](evidence.md)).
+
 ![Main window built from the starter](../assets/window-main.png)
 
 ## Files
@@ -50,7 +56,7 @@ margin and gap is on one spacing scale. It is a gallery to choose from, not a la
 | [updates](templates/updates.md) | `python/mytool/updater.py`, `tools/release.py` | Optional self-update: verified install into the user profile, rollback, the release script |
 | [sections-inputs](templates/sections-inputs.md) | `ui/sections.py`, `ui/inputs.py` | Sections as tabs or as a list on the left; search with suggestions, copy button, clearable filter, pick button, multi-select list, list editor |
 | [sliders-colors-badges](templates/sliders-colors-badges.md) | `ui/sliders.py`, `ui/colors.py`, `ui/badges.py` | One- and two-handle sliders, colour picker, count and status badges, tags, status dots, filter pills |
-| [cards-states](templates/cards-states.md) | `ui/cards.py`, `ui/gallery.py`, `ui/states.py` | Cards in a responsive grid; the gallery and its lightbox; busy overlay, result card with the donation line, empty state, the empty state in the list's own place |
+| [cards-states](templates/cards-states.md) | `ui/cards.py`, `ui/gallery.py`, `ui/states.py`, `ui/confetti.py` | Cards in a responsive grid; the gallery and its lightbox; the Before / After slider; busy overlay, result card with the donation line, empty state, the empty state in the list's own place; the confetti burst from the result card's success sign |
 | [combos-tree](templates/combos-tree.md) | `ui/combos.py`, `ui/tree.py` | Dropdowns with icons, groups, typing and check boxes; choice cards; the scene tree; the drop zone |
 | [charts-loading](templates/charts-loading.md) | `ui/charts.py`, `ui/loading.py` | Stat tiles, column, line and donut charts with hover values; spinners, the busy button, skeleton rows, the progress ring, wizard steps |
 | [dialogs](templates/dialogs.md) | `ui/dialogs.py` | Every window's frameless chrome (`ToolDialog`), veil, Settings in sections (tabs or a list), About, Welcome, Support, questions, messages and prompts (`ask`, `inform`, `ask_text`) |
@@ -61,7 +67,7 @@ Assets the project needs besides the code:
 - `assets/themes/*.json`: the seven [palettes](palettes.md) (copy them byte for byte; `graphite` is the default).
 - `assets/icons/*.svg`: original [Lucide](https://lucide.dev) icons with `stroke="currentColor"`, plus `LICENSE-lucide.txt`
   (ISC). The starter uses: `bell-off`, `box`, `calendar`, `calendar-clock`, `camera`, `chart-column`, `check`,
-  `chevron-down`, `chevron-left`, `chevron-right`, `chevron-up`, `circle-alert`, `circle-check`, `clipboard-paste`,
+  `chevron-down`, `chevron-left`, `chevron-right`, `chevron-up`, `chevrons-left-right`, `circle-alert`, `circle-check`, `clipboard-paste`,
   `clock`, `cloud-off`, `copy`, `crosshair`, `download`, `external-link`, `eye`, `eye-off`, `folder-open`, `gauge`,
   `globe`, `grip-vertical`, `heart`, `image-off`, `info`, `layers`, `layout-grid`, `lightbulb`, `loader`, `logs`,
   `minus`, `package`, `palette`, `pencil`, `pipette`, `play`, `plus`, `refresh-cw`, `rotate-ccw`, `scroll-text`,

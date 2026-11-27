@@ -1,6 +1,6 @@
 # Template: Cards, gallery and area states
 
-Cards in a responsive grid (`cards.py`); the picture gallery and its lightbox as in the MaxPkg Package Manager (`gallery.py`: drag or step between pictures, thumbnails, a click opens the lightbox over the window's content with a blurred backdrop, Esc, arrows, a click beside or a throw up or down closes it); the states of a whole area (`states.py`): the busy overlay over a blurred snapshot with Cancel and the result (as the MaxPkg Package Manager), the result card of a finished operation with its countdown bar and, after a success, an optional donation line with a shimmering Donate (as MaxRewind), and the empty state with an icon, a hint and one action, which takes a list's own place (`StateArea`) so nothing around it moves.
+Cards in a responsive grid (`cards.py`); the picture gallery and its lightbox as in the MaxPkg Package Manager (`gallery.py`: drag or step between pictures, thumbnails, a click opens the lightbox over the window's content with a blurred backdrop, Esc, arrows, a click beside or a throw up or down closes it; the Before / After slider `CompareSlider`: two pictures cut by a divider with a round knob, moved by a press, a drag or the keys); the states of a whole area (`states.py`): the busy overlay over a blurred snapshot with Cancel and the result (as the MaxPkg Package Manager), the result card of a finished operation with its countdown bar and, after a success, an optional donation line with a shimmering Donate (as MaxRewind), and the empty state with an icon, a hint and one action, which takes a list's own place (`StateArea`) so nothing around it moves; and the confetti burst that celebrates a rare, real success from the result card's round icon (`confetti.py`, as MaxPkg Packager's installer).
 
 Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project inside 3ds Max 2022 (Python 3.7.9 / PySide2 5.15.1) through Max Ultra MCP with the windows off screen (the controls trainer checks), and shown on screen in 3ds Max 2027 (Python 3.13.9 / PySide6 6.8.3).
 
@@ -207,7 +207,10 @@ def demo_picture(index, width=640, height=400, colors=None):
   round previous / next buttons, the round close button (red on hover), the title and caption at the bottom. Esc,
   a click beside the picture or dragging the picture up or down (the backdrop fades as it goes, Fancybox style)
   closes it; Left / Right and drags step through the pictures.
-Both are child widgets of the window, never translucent windows. Pictures are QPixmaps the tool owns (renders,
+* CompareSlider: two pictures of one thing (before / after a render setting, a clay and a final render) on top of each
+  other, cut by a vertical divider with a round knob; press or drag anywhere to move it, Left / Right step it, Home /
+  End go to the edges. As in the MaxPkg Package Manager.
+All of them are child widgets of the window, never translucent windows. Pictures are QPixmaps the tool owns (renders,
 previews); `pixmap_for` may return None while one is still loading (a spinning ring) and `failed_for` say that one will
 not come (an icon and a short message).
 """
@@ -919,6 +922,216 @@ class Lightbox(QtWidgets.QWidget, Themed):
 def open_lightbox(host, theme, items, index=0):
     """Show the lightbox over `host` at picture `index`; returns it."""
     return Lightbox(host, theme, items, index)
+
+
+class CompareSlider(QtWidgets.QWidget, Themed):
+    """Before / After: two pictures on top of each other, cut by a vertical divider (as in the MaxPkg Package Manager).
+
+    * The Before picture sets the size: its own size, or the available width when it is wider; never enlarged, its
+      aspect kept. The After picture lies exactly over it and shows only right of the divider; a different shape is
+      cropped to fit, centred, never stretched. Corners rounded 8 px.
+    * The divider starts at the middle: a 2 px white line with a 40 px round knob (a white 2 px ring, a dark see-through
+      fill, the Lucide chevrons-left-right). A press anywhere moves it there and a drag follows the pointer; with the
+      focus, Left / Right step it by 5 %, Home / End go to the edges, and an outline in the focus colour rings the knob.
+    * Small dark badges name the sides in the top corners (Before left, After right); a badge hides while the divider
+      covers it.
+    * The wheel is left to the page. While a picture is on its way (None) the place is 16:9; a picture that failed (a
+      path that does not load) shows its label on a muted fill.
+    `before` / `after`: (label, picture) with a QPixmap, a file path or None; `set_picture` when one arrives later.
+    `changed(float)` sends the divider's place (0..1).
+    """
+
+    changed = Signal(float)
+    LOADING_RATIO = 9 / 16.0
+    STEP = 0.05
+
+    def __init__(self, theme, before, after, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.position = 0.5
+        self._sides = {}
+        self.setCursor(Qt.SizeHorCursor)
+        self.setFocusPolicy(Qt.StrongFocus)
+        policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
+        self.set_picture("before", *before)
+        self.set_picture("after", *after)
+        self.bind_theme(theme)
+
+    def _on_theme(self, colors):
+        self._colors = colors
+        self.update()
+
+    def set_picture(self, side, label, picture):
+        """`side` "before" or "after"; `picture` a QPixmap, a file path or None (still on its way)."""
+        failed = False
+        if isinstance(picture, str):
+            loaded = QtGui.QPixmap(picture)
+            failed, picture = loaded.isNull(), (None if loaded.isNull() else loaded)
+        elif picture is not None and picture.isNull():
+            failed, picture = True, None
+        self._sides[side] = (label, picture, failed)
+        names = [self._sides.get(key, ("", None, False))[0] for key in ("before", "after")]
+        self.setAccessibleName("{} / {} comparison".format(*names))
+        self.updateGeometry()
+        self.update()
+
+    def label(self, side):
+        return self._sides[side][0]
+
+    def failed(self, side):
+        return self._sides[side][2]
+
+    def picture_rect(self, width=None):
+        width = self.width() if width is None else width
+        picture = self._sides["before"][1]
+        if picture is None:
+            return QtCore.QRectF(0, 0, width, width * self.LOADING_RATIO)
+        ratio = picture.devicePixelRatioF() if hasattr(picture, "devicePixelRatioF") else picture.devicePixelRatio()
+        natural = QtCore.QSizeF(picture.width() / max(1.0, ratio), picture.height() / max(1.0, ratio))
+        shown = natural.scaled(min(float(width), natural.width()), 100000.0, Qt.KeepAspectRatio)
+        return QtCore.QRectF((width - shown.width()) / 2.0, 0, shown.width(), shown.height())
+
+    def set_position(self, position):
+        position = max(0.0, min(1.0, float(position)))
+        if position != self.position:
+            self.position = position
+            self.update()
+            self.changed.emit(position)
+
+    def _follow(self, event):
+        target = self.picture_rect()
+        point = event.position() if hasattr(event, "position") else event.pos()
+        if target.width() > 0:
+            self.set_position((point.x() - target.left()) / target.width())
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        return int(round(self.picture_rect(width).height()))
+
+    def sizeHint(self):
+        return QtCore.QSize(px(400), self.heightForWidth(px(400)))
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.setFocus(Qt.MouseFocusReason)
+            self._follow(event)
+            event.accept()
+            return
+        QtWidgets.QWidget.mousePressEvent(self, event)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() & Qt.LeftButton:
+            self._follow(event)
+            event.accept()
+            return
+        QtWidgets.QWidget.mouseMoveEvent(self, event)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Left:
+            self.set_position(self.position - self.STEP)
+        elif key == Qt.Key_Right:
+            self.set_position(self.position + self.STEP)
+        elif key == Qt.Key_Home:
+            self.set_position(0.0)
+        elif key == Qt.Key_End:
+            self.set_position(1.0)
+        else:
+            QtWidgets.QWidget.keyPressEvent(self, event)
+            return
+        event.accept()
+
+    def _badge_font(self):
+        font = QtGui.QFont(self.font())
+        font.setPointSizeF(max(7.0, font.pointSizeF() * 0.85))
+        font.setBold(True)
+        return font
+
+    def badge_rects(self):
+        target = self.picture_rect()
+        metrics = QtGui.QFontMetricsF(self._badge_font())
+        rects = []
+        for index, side in enumerate(("before", "after")):
+            text = self.label(side)
+            advance = metrics.horizontalAdvance(text) if hasattr(metrics, "horizontalAdvance") else metrics.width(text)
+            width, height = advance + space(16), metrics.height() + space(6)
+            left = target.left() + space(8) if index == 0 else target.right() - space(8) - width
+            rects.append(QtCore.QRectF(left, target.top() + space(8), width, height))
+        return rects
+
+    def badge_visible(self, index):
+        """False while the divider covers the badge (0: Before, 1: After)."""
+        target = self.picture_rect()
+        split = target.left() + target.width() * self.position
+        rect = self.badge_rects()[index]
+        return split > rect.right() if index == 0 else split < rect.left()
+
+    def _draw_side(self, painter, side, target, clip):
+        label, picture, failed = self._sides[side]
+        painter.save()
+        painter.setClipRect(clip, Qt.IntersectClip)
+        if picture is not None:
+            source = QtCore.QRectF(picture.rect())
+            if target.height() > 0 and source.height() > 0:  # Cropped to the Before shape, centred, never stretched
+                wanted = target.width() / target.height()
+                if source.width() / source.height() > wanted:
+                    width = source.height() * wanted
+                    source = QtCore.QRectF(source.left() + (source.width() - width) / 2.0, source.top(), width,
+                                           source.height())
+                else:
+                    height = source.width() / wanted
+                    source = QtCore.QRectF(source.left(), source.top() + (source.height() - height) / 2.0,
+                                           source.width(), height)
+            painter.drawPixmap(target, picture, source)
+        else:
+            painter.fillRect(target, QtGui.QColor(self._colors["recessed"]))
+            if failed:
+                painter.setPen(QtGui.QColor(self._colors["muted_text"]))
+                painter.drawText(clip.intersected(target), int(Qt.AlignCenter), label)
+        painter.restore()
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
+        target = self.picture_rect()
+        split = target.left() + target.width() * self.position
+        shape = QtGui.QPainterPath()
+        shape.addRoundedRect(target, px(8), px(8))
+        painter.setClipPath(shape)
+        self._draw_side(painter, "before", target,
+                        QtCore.QRectF(target.left(), target.top(), split - target.left(), target.height()))
+        self._draw_side(painter, "after", target,
+                        QtCore.QRectF(split, target.top(), target.right() - split, target.height()))
+        white = QtGui.QColor("#ffffff")
+        line = px(2)
+        painter.fillRect(QtCore.QRectF(split - line / 2.0, target.top(), line, target.height()), white)
+        painter.setFont(self._badge_font())
+        for index, (rect, side) in enumerate(zip(self.badge_rects(), ("before", "after"))):
+            if not self.badge_visible(index):
+                continue
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QtGui.QColor(0, 0, 0, 165))
+            painter.drawRoundedRect(rect, px(5), px(5))
+            painter.setPen(white)
+            painter.drawText(rect, int(Qt.AlignCenter), self.label(side))
+        painter.setClipping(False)
+        size = px(40)
+        knob = QtCore.QRectF(split - size / 2.0, target.center().y() - size / 2.0, size, size)
+        painter.setPen(QtGui.QPen(white, px(2)))
+        painter.setBrush(QtGui.QColor(0, 0, 0, 115))
+        painter.drawEllipse(knob.adjusted(1, 1, -1, -1))
+        glyph = px(20)
+        painter.drawPixmap(QtCore.QPointF(knob.center().x() - glyph / 2.0, knob.center().y() - glyph / 2.0),
+                           icon_pixmap("chevrons-left-right", "#ffffff", glyph, device_pixel_ratio(self)))
+        if self.hasFocus():
+            painter.setPen(QtGui.QPen(QtGui.QColor(self._colors["focus"]), px(2)))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawEllipse(knob.adjusted(-px(2), -px(2), px(2), px(2)))
+        painter.end()
 ```
 
 ## `python/mytool/ui/states.py`
@@ -932,12 +1145,14 @@ def open_lightbox(host, theme, items, index=0):
 * ResultCard (as MaxRewind's notice): the outcome of a finished operation in the middle of the area over its blurred,
   dimmed content: a round icon in the result's colour, a bold line, a muted line, a bar that runs down to the card
   closing (it waits while the pointer is on the card), and, after a success, an optional note with a shimmering Donate
-  (only when the owner gave a donation destination). A click elsewhere closes it.
+  (only when the owner gave a donation destination). A click elsewhere closes it. `celebrate=True` adds the confetti
+  burst from its round icon (confetti.py) for a rare, real milestone.
 * EmptyState (as Runtime Manager's state panel): an icon on a tinted disc, a title, a hint in help markup and an
   optional action ("No results" with Clear Search, "Offline" with Retry).
 * StateArea: a list (or a grid) and its empty state in one place. The empty state takes the content's own room, centred,
   so nothing around it moves: the search field above a list stays where it was while the user types.
-All three are child widgets of the area they cover, never translucent windows (risky inside Max).
+All three are child widgets of the area they cover, never translucent windows (risky inside Max). The confetti of a
+celebrated result is its own short-lived layer (see confetti.py).
 """
 
 import time
@@ -946,6 +1161,7 @@ from .. import DONATE_URL
 from ..qt_compat import QtCore, QtGui, QtWidgets, Qt, Signal, device_pixel_ratio
 from ..ui_scale import px, space
 from . import controls
+from .confetti import burst
 from .controls import Button, Shimmer, Themed, icon_pixmap
 from .toast import StatusIcon
 
@@ -1111,8 +1327,9 @@ class ResultCard(QtWidgets.QWidget, Themed):
         self.hide()
         self.bind_theme(theme)
 
-    def show_message(self, kind, title, text="", ms=4500, donate_note=""):
-        """`donate_note`: a line above a Donate button after a success, or "" for no button."""
+    def show_message(self, kind, title, text="", ms=4500, donate_note="", celebrate=False):
+        """`donate_note`: a line above a Donate button after a success, or "" for no button. `celebrate`: confetti
+        bursts from the round icon of a success (confetti.py); only for a rare, real milestone."""
         self._icon, self._role = self.ICONS.get(kind, self.ICONS["success"])
         self._title, self._text = title, text
         self._note = donate_note if self.donate_button is not None else ""
@@ -1127,6 +1344,14 @@ class ResultCard(QtWidgets.QWidget, Themed):
         self.show()
         self.update()
         self._tick.start()
+        if celebrate and kind == "success":  # A moment after the card is up, from the centre of its round icon
+            QtCore.QTimer.singleShot(80, self._celebrate)
+
+    def _celebrate(self):
+        if not self.isVisible():
+            return
+        centre = QtCore.QPoint(int(self._card.center().x()), int(self._card.top() + px(22) + px(34) / 2))
+        self.confetti = burst(self.window(), self._theme, self.mapToGlobal(centre))
 
     def _donate(self):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl(DONATE_URL))
@@ -1323,4 +1548,159 @@ class StateArea(QtWidgets.QWidget):
 
     def is_empty(self):
         return self.stack.currentWidget() is self.empty
+```
+
+## `python/mytool/ui/confetti.py`
+
+```python
+"""Confetti (as MaxPkg Packager's installer): a short burst from the success sign when a rare, real milestone succeeds
+(a package installed, the first export of a project). The pieces fly up and out to both sides a little past the
+window, flutter down and are gone by 100 px below its bottom edge; each one goes at its own moment, and most end in a
+small four-pointed star in their colour with a white heart. The pieces thrown far to the side go soonest, so the middle
+of the burst lingers. The layer lives 5 s.
+
+The one translucent window of a tool, and only for those 5 s: it rounds nothing (that is what goes wrong with Max's
+windows), takes no clicks, no keys and no focus (WindowTransparentForInput, WA_TransparentForMouseEvents,
+WA_ShowWithoutActivating), belongs to the tool's window (a Qt.Tool window it owns: it closes with it) and deletes
+itself. Safe mode leaves it out, like every other native extra. Use it once per real success, never for routine
+results: the result card says the outcome, the confetti only celebrates it (ResultCard.show_message with
+celebrate=True).
+"""
+
+import math
+import random
+
+from .. import qt_compat, ui_scale
+from ..qt_compat import QtCore, QtGui, QtWidgets, Qt
+from ..ui_scale import px
+
+LIFE_MS = 5000  # The layer's whole life
+PIECES = 90
+ROLES = ("accent", "log_success", "log_info", "log_system", "log_warning")  # The pieces' colours, in turn
+
+
+def burst(window, theme, origin):
+    """A burst from `origin` (a global point: the centre of the success sign) over `window`. Returns the layer, or
+    None in safe mode or while the window is hidden or minimized. Keep the layer on the caller; it deletes itself."""
+    if qt_compat.SAFE["on"] or window is None or not window.isVisible() or window.isMinimized():
+        return None
+    return Confetti(window, theme, origin)
+
+
+def twinkle(painter, piece, flash, fade):
+    """A four-pointed star in the piece's colour, white at its heart: it grows, turns a little and is gone.
+    `flash` runs from 0 to 1 over the star's life; `fade` is the opacity below the window's bottom edge."""
+    size = (3.0 + 9.0 * (1.0 - (1.0 - flash) ** 2)) * ui_scale.current["px"]
+    waist = size * 0.18
+    star = QtGui.QPainterPath()
+    star.moveTo(0, -size)
+    for x, y in ((waist, -waist), (size, 0), (waist, waist), (0, size), (-waist, waist), (-size, 0),
+                 (-waist, -waist)):
+        star.lineTo(x, y)
+    star.closeSubpath()
+    painter.save()
+    painter.translate(piece["x"], piece["y"])
+    painter.rotate(45 * flash)
+    painter.setOpacity(fade * (1.0 - flash) ** 1.5)
+    painter.setBrush(piece["color"].lighter(135))
+    painter.drawPath(star)
+    painter.setBrush(QtGui.QColor(255, 255, 255, 230))
+    painter.drawEllipse(QtCore.QPointF(0, 0), waist * 0.9, waist * 0.9)
+    painter.restore()
+
+
+class Confetti(QtWidgets.QWidget):
+    """See the module. A see-through layer over the screen around `window`: 0.55 of its width on each side, 0.45 of
+    its height above and 110 px below, cut to the work area of its screen."""
+
+    def __init__(self, window, theme, origin):
+        flags = Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
+        if hasattr(Qt, "WindowTransparentForInput"):
+            flags |= Qt.WindowTransparentForInput
+        QtWidgets.QWidget.__init__(self, window, flags)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        frame = window.frameGeometry()
+        area = frame.adjusted(-int(frame.width() * 0.55), -int(frame.height() * 0.45),
+                              int(frame.width() * 0.55), px(110))
+        screen = qt_compat.work_area(frame.center())
+        if screen is not None:
+            area = area.intersected(screen)
+        self.setGeometry(area)
+        self.floor = frame.bottom() - area.top()  # Below the window's bottom edge the pieces fade out
+        start = origin - area.topLeft()
+        colors = theme.colors
+        scale = ui_scale.current["px"]
+        self.pieces = []
+        for index in range(PIECES):
+            angle = math.radians(random.uniform(-160, -20))  # A fan up and out to both sides
+            speed = random.uniform(460, 860) * scale
+            self.pieces.append({
+                "x": start.x() + random.uniform(-14, 14) * scale, "y": start.y(),
+                "vx": math.cos(angle) * speed, "vy": math.sin(angle) * speed,
+                "tilt": random.uniform(-30, 30), "flip": random.uniform(0, 6.28), "rate": random.uniform(4, 7),
+                "w": 8 * scale, "h": 4.5 * scale, "color": QtGui.QColor(colors[ROLES[index % len(ROLES)]]),
+                # Each piece goes at its own moment: thrown far to the side, sooner; the middle lingers
+                "life": max(0.6, (1.3 + 3.3 * random.random() ** 0.7) *
+                            (1.0 - 0.75 * min(1.0, abs(math.cos(angle)) * speed / (700 * scale)) ** 1.4)),
+                "fade": random.uniform(0.12, 0.5),  # Its last moments: it shrinks away
+                "sparkle": random.random() < 0.7})  # Most end in a little star
+        self.clock = QtCore.QElapsedTimer()
+        self.clock.start()
+        self.last = 0
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(16)
+        self.timer.timeout.connect(self.tick)
+        self.timer.start()
+        self.show()
+
+    def tick(self):
+        now = self.clock.elapsed()
+        step = (now - self.last) / 1000.0
+        self.last = now
+        if now > LIFE_MS:
+            self.timer.stop()
+            self.close()  # WA_DeleteOnClose: gone with the burst
+            return
+        scale = ui_scale.current["px"]
+        gravity = 650 * scale
+        air = 0.985 ** (step * 60)
+        for piece in self.pieces:
+            piece["vx"] *= 0.963 ** (step * 60)  # The burst opens, then the pieces only fall
+            piece["vy"] = min(piece["vy"] * air + gravity * step, 140 * scale)  # A gentle fall
+            piece["x"] += piece["vx"] * step
+            piece["y"] += piece["vy"] * step
+            piece["flip"] += piece["rate"] * step
+        self.update()
+
+    def paintEvent(self, event):
+        seconds = self.clock.elapsed() / 1000.0
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setPen(Qt.NoPen)
+        reach = 100.0 * ui_scale.current["px"]  # Gone 100 px below the window
+        for piece in self.pieces:
+            below = (piece["y"] - self.floor) / reach
+            if below >= 1.0:
+                continue
+            fade = 1.0 if below <= 0 else 1.0 - below
+            left = (piece["life"] - seconds) / piece["fade"]
+            if left <= 0:
+                flash = -left * piece["fade"] / 0.32  # Then, for most, a little star flashes where it was
+                if piece["sparkle"] and flash < 1.0:
+                    twinkle(painter, piece, flash, fade)
+                continue
+            own = min(1.0, left)
+            painter.setOpacity(own * fade)
+            painter.save()
+            painter.translate(piece["x"], piece["y"])
+            painter.scale(0.4 + 0.6 * own, 0.4 + 0.6 * own)
+            painter.rotate(piece["tilt"] + 15 * math.sin(piece["flip"] * 0.5))
+            painter.scale(1.0, max(0.2, abs(math.cos(piece["flip"]))))  # It turns over as it flutters
+            painter.setBrush(piece["color"])
+            painter.drawRoundedRect(QtCore.QRectF(-piece["w"] / 2, -piece["h"] / 2, piece["w"], piece["h"]), 1, 1)
+            painter.restore()
+        painter.end()
 ```

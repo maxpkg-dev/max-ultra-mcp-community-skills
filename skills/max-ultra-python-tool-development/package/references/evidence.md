@@ -189,6 +189,29 @@ after the owner stopped was clean.
 donated, don't remind me" replaces "Don't remind me again" (checked by its text in the Support window). The
 reference pictures in `assets/` now come from the clean 3ds Max 2027 run (51).
 
+## Version 1.3.0
+
+Two controls from the owner's other tools, approved there: the confetti burst of MaxPkg Packager's installer
+(`ui/confetti.py`, `ResultCard.show_message(..., celebrate=True)`, the trainer's Celebration panel; prepared in this
+repository by an earlier session and left uncommitted) and the Before / After compare slider of the MaxPkg Package
+Manager (`gallery.CompareSlider`, adapted to plain QPixmaps or file paths, the theme roles `recessed`, `muted_text`
+and `focus`, the interface size and the spacing scale; the trainer's Cards & Gallery section shows a clay and a
+rendered version of one picture). The starter was regenerated from the template pages (45 code files identical),
+compiled with Python 3.7.9 and 3.13.9, and run inside 3ds Max 2022 (PySide2 5.15.1) and 3ds Max 2027 (PySide6 6.8.3)
+through Max Ultra MCP with the windows off screen, settings in a scratch folder and empty scenes, at 125 %: **35
+release checks passed in each**. They cover the trainer starting with its eleven sections and none scrolling sideways;
+the compare slider's size from Before (never enlarged, a wider one fitted), Before left and After right of the divider
+in pixels, a press at 25 %, a drag to 75 % and a clamp at 100 %, the keys, the wheel left to the page, a badge hidden
+while covered, a failed picture's label on the muted fill and the 16:9 place of a picture on its way (the Package
+Manager's own unit tests, adapted); the confetti: no burst over a hidden window or in safe mode, none after a warning
+even with `celebrate`, a burst from a celebrated success, a layer that is a `Qt.Tool` window of the tool's window
+taking no clicks, keys or focus, its area around the window cut to the work area, 90 pieces in the theme's five
+roles, pieces thrown far to the side going sooner, and the layer gone after 5 s; the API still answering (a scene
+change only as a dry run); a clean stop. The 235-check harness of 1.2.0 lived in a scratch folder that was cleared
+before this version and was not run again; the new release checks are kept with the maintainer's working files. The
+reference pictures `compare-slider.png` and `confetti.png` come from the 3ds Max 2027 run. No practical skill test or
+reviewer is recorded.
+
 ## TerraScoop (version 1.1.0 of this skill)
 
 The window, controls, dialogs, interface size, Max reliability lessons and starter templates added in 1.1.0 come from

@@ -4,7 +4,7 @@ How every shared control looks and behaves in tools made with this skill, and wh
 [controls and toasts](templates/controls.md), [forms, switches and pickers](templates/forms.md),
 [logs and the mini log](templates/logs.md), [dialogs and questions](templates/dialogs.md),
 [sections and inputs](templates/sections-inputs.md), [sliders, colours and badges](templates/sliders-colors-badges.md),
-[cards and area states](templates/cards-states.md), [dropdowns, choice cards, tree and drop zone](templates/combos-tree.md),
+[cards, area states and confetti](templates/cards-states.md), [dropdowns, choice cards, tree and drop zone](templates/combos-tree.md),
 [charts and loading](templates/charts-loading.md) and [style sheet](templates/themes-style.md). The
 [main window example](templates/main-window-example.md) is a controls trainer that shows all of them in one design, in
 eleven sections chosen from a list on the left: it is a gallery to see them work together, not a layout to copy. Sizes are logical pixels at 100 % interface size (`px()` scales them, the style sheet
@@ -99,6 +99,7 @@ miss. Decide per element:
 | Keep a short list of values (extensions, names, tags) | List editor (add, paste many, edit, reorder) or removable tags | A comma-separated text field |
 | Browse items with a picture or a description (presets, scenes) | Cards in a responsive grid | A plain list of names |
 | Look at several pictures | Gallery: a large picture and thumbnails | Separate windows per picture |
+| Compare two versions of one picture (before / after a setting, clay and render) | Before / After slider | Two pictures side by side, a toggle button |
 | Choose a category that also appears as a badge in a list | Badge dropdown | A plain dropdown |
 | Enter a whole number in a small range (a version part, a count) | Stepper | A free text field |
 | Enter a date | Date field with its calendar (months and years one click away) | A text field, a native date edit |
@@ -113,6 +114,7 @@ miss. Decide per element:
 | Know what blocks the main action | Mini log (statuses), red outline and error bubble on the field | A toast, a message box |
 | Learn the outcome of an action they started | Toast (success, error, with an action button) | The mini log, a modal dialog |
 | See the end of the main operation (converted, exported) | Result card in the middle, closing by itself | A toast that is missed, a message box |
+| Celebrate a rare, real milestone (a package installed, the first export of a project) | Confetti from the result card's success sign (`celebrate=True`), once | Confetti after every routine result; confetti without the result card |
 | Wait for work that blocks the whole area | Busy overlay with what runs, a hint and Cancel | A frozen window |
 | Wait for something short (a list, a check) | Spinner beside a line of text, or in the button that started it | A frozen button, a busy overlay |
 | Wait for content whose layout is known | Skeleton rows in its place | A blank area that jumps when it fills |
@@ -509,8 +511,22 @@ Max's hotkeys are off while it picks. The screen pictures stay in memory only wh
   Esc, a click beside the picture or on the backdrop, or dragging the picture up or down past 110 px (the backdrop
   fades and the controls step aside while it moves) closes it; Left / Right and sideways drags step. A child widget,
   never a translucent window.
+- **Before / After** (`gallery.CompareSlider(theme, (label, picture), (label, picture))`), as in the MaxPkg Package
+  Manager: two pictures of one thing on top of each other, cut by a vertical divider. The Before picture sets the size
+  (its own size, or the width when it is wider; never enlarged, its shape kept); the After picture lies exactly over
+  it, right of the divider, cropped to fit and centred when its shape differs, never stretched. Corners radius 8. The
+  divider starts at the middle: a 2 px white line with a 40 px round knob (a white 2 px ring, black at alpha 115
+  inside, the Lucide `chevrons-left-right`). A press anywhere moves it there and a drag follows the pointer (cursor
+  `SizeHorCursor`); with the focus, Left / Right step 5 %, Home / End go to the edges, and a ring in the `focus` colour
+  shows the focus. Dark badges (black at alpha 165, white bold text at 85 %, radius 5) name the sides in the top
+  corners, Before left and After right; a badge hides while the divider covers it. The wheel is left to the page. A
+  picture is a QPixmap, a file path, or None while it is on its way (a 16:9 place on `recessed`); a path that does not
+  load shows its label in `muted_text` on `recessed`. `set_picture(side, label, picture)` when one arrives later;
+  `changed(float)` sends the divider's place.
 
 ![The gallery](../assets/gallery.png)
+
+![Before / After in the trainer](../assets/compare-slider.png)
 
 ![The lightbox over the window](../assets/lightbox.png)
 
@@ -542,6 +558,36 @@ All three are child widgets of the area they cover, never translucent windows.
 in one place, a stacked layout as tall as the taller of the two. The empty state takes the list's own room, centred,
 so the search field above and everything below stay where they were while the user types. The trainer's search and
 its card filter use it; the skeleton rows of the Loading section too.
+
+## Confetti
+
+A short burst that celebrates a rare, real success (`confetti.burst(window, theme, origin)`, or
+`ResultCard.show_message(kind, title, text, celebrate=True)`, which bursts from the card's round icon 80 ms after the
+card shows), as in MaxPkg Packager's installer when a package is installed. The result card tells the outcome; the
+confetti only celebrates it. Use it once per real milestone (a package installed, the first export of a project),
+never after routine results, warnings or errors.
+
+- **The burst.** 90 pieces from the centre of the success sign: up and out to both sides (angles -160 to -20 degrees,
+  460-860 px/s), sideways speed falling by 0.963 a frame so the burst opens and then only falls, gravity 650 px/s2, a
+  gentle fall of at most 140 px/s. Each piece is a rounded 8 x 4.5 px strip in one of five theme roles in turn
+  (`accent`, `log_success`, `log_info`, `log_system`, `log_warning`) and flutters: a tilt, a sway and a flip that
+  narrows it as it turns over.
+- **Each piece its own life.** `max(0.6, (1.3 + 3.3 * random() ** 0.7) * (1 - 0.75 * min(1, |cos(angle)| * speed /
+  (700 * scale)) ** 1.4))` seconds: the pieces thrown far to the side go much sooner, so the middle of the burst
+  lingers. Each piece shrinks away over its own fade (0.12-0.5 s); 70 % then end in a small four-pointed star in their
+  colour with a white heart that grows, turns 45 degrees and is gone (`twinkle`, 0.32 s).
+- **The layer.** A see-through window over the screen around the tool's window: 0.55 of the window's width on each side,
+  0.45 of its height above and 110 px below, cut to the work area. The pieces fade out over the 100 px below the
+  window's bottom edge. It lives 5 s and deletes itself.
+- **The one translucent window, on purpose.** Elsewhere a tool never uses a translucent window inside Max (rounding a
+  real window with it is what goes wrong). The confetti layer rounds nothing and is never interactive: a `Qt.Tool`
+  window owned by the tool's window (it closes with it), frameless, on top, without a shadow, with
+  `WindowTransparentForInput`, `WA_TransparentForMouseEvents` and `WA_ShowWithoutActivating`: it takes no clicks, no
+  keys and no focus, and the window under it stays active. Safe mode leaves it out like every other native extra; a
+  hidden or minimized window gets none.
+- Sizes and speeds are multiplied by the interface size, so a burst looks the same at 125 % and on a 4K screen.
+
+![Confetti from the result card in the trainer's Feedback section](../assets/confetti.png)
 
 ## Soft edges of scrolling areas
 
@@ -882,7 +928,7 @@ allow `A-Z a-z 0-9`, space, `-` and `_`." The same markup serves How to use step
 | Date and time | `calendar-clock` | Drop or import files | `upload` |
 | Light | `lightbulb` | Camera | `camera` |
 | Charts, statistics | `chart-column` | Loading | `loader` |
-| Speed, quality level | `gauge` | | |
+| Speed, quality level | `gauge` | Compare before / after | `chevrons-left-right` |
 
 Use the original Lucide SVG files (`stroke="currentColor"`, replaced by the role colour when rendering), with the ISC
 license in the tool. The Logs icon is Lucide `logs` (rows with dots), not `scroll-text`. No emoji, font symbols or

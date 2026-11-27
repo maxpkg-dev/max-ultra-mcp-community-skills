@@ -1,6 +1,6 @@
 # Template: Main window example
 
-The controls trainer: a main window built on the tool window that shows every shared control in one design, in eleven sections chosen from a list on the left (`SectionBook(side=True)`). **Fields**: panels with a required star and help balloons, required fields with the error bubble, Major / Minor / Patch steppers, the date picker, a date with a time and a time alone, the badge dropdown, a read-only ID with Copy and a menu, a folder field, collapsible groups, a drop zone. **Choices**: segments, switches, check boxes, dropdowns (plain, clearable, with icons, with groups, editable, with check boxes), scene picks, choice cards, every button variant, pills, warning blocks. **Sliders & Colours**, **Badges**, **Lists** (search with its empty state in place, a list with a menu, a multi-select list, the list editor, a table, a scene tree), **Cards & Gallery**, **Charts** (stat tiles, column, line and donut charts), **Feedback** (toasts, the busy overlay, result cards, empty states), **Loading** (spinners, a busy button, skeleton rows, a progress ring, wizard steps), **Windows** (messages, questions, prompts, Settings as tabs or a list, Welcome, Logs, About) and **Donations**. Below: the mini log with statuses only, View Logs, the state pill, the progress bar while working, the rotating link and the primary action with a background job that ends on the result card. It is a gallery: a real tool takes only the controls its task needs.
+The controls trainer: a main window built on the tool window that shows every shared control in one design, in eleven sections chosen from a list on the left (`SectionBook(side=True)`). **Fields**: panels with a required star and help balloons, required fields with the error bubble, Major / Minor / Patch steppers, the date picker, a date with a time and a time alone, the badge dropdown, a read-only ID with Copy and a menu, a folder field, collapsible groups, a drop zone. **Choices**: segments, switches, check boxes, dropdowns (plain, clearable, with icons, with groups, editable, with check boxes), scene picks, choice cards, every button variant, pills, warning blocks. **Sliders & Colours**, **Badges**, **Lists** (search with its empty state in place, a list with a menu, a multi-select list, the list editor, a table, a scene tree), **Cards & Gallery**, **Charts** (stat tiles, column, line and donut charts), **Feedback** (toasts, the busy overlay, result cards, the confetti celebration, empty states), **Loading** (spinners, a busy button, skeleton rows, a progress ring, wizard steps), **Windows** (messages, questions, prompts, Settings as tabs or a list, Welcome, Logs, About) and **Donations**. Below: the mini log with statuses only, View Logs, the state pill, the progress bar while working, the rotating link and the primary action with a background job that ends on the result card. It is a gallery: a real tool takes only the controls its task needs.
 
 Copy into the tool's project at the shown path and rename as described in [starter templates](../starter-templates.md). Verified as one project inside 3ds Max 2022 (Python 3.7.9 / PySide2 5.15.1) and 3ds Max 2027 (Python 3.13.9 / PySide6 6.8.3) through Max Ultra MCP, with the windows off screen.
 
@@ -23,9 +23,9 @@ left (sections.SectionBook, the style for many sections):
 * Lists: search with suggestions, a list with a menu and drag to reorder, a list to pick several items by
   dragging over them, the list editor, layer chips, a table, a scene tree.
 * Cards and gallery: filter pills above a responsive card grid (with an empty state), a picture gallery with
-  thumbnails and its lightbox.
+  thumbnails and its lightbox, a Before / After compare slider.
 * Charts: stat tiles with a change and a sparkline, a column chart, a line chart, a donut.
-* Feedback: toasts, the busy overlay, result cards, empty states, the progress bar.
+* Feedback: toasts, the busy overlay, result cards, the confetti celebration, empty states, the progress bar.
 * Loading: spinners (inline, in a button, large), skeleton rows, a progress ring, wizard steps.
 * Windows: the tool's own messages, questions and prompts, Settings as tabs or as a list, Welcome, Logs, About, and
   the tool without its window (api.py: the same operations for MAXScript, scripts and AI assistants).
@@ -44,13 +44,13 @@ import time
 from .. import DONATE_URL, TOOL_NAME, api
 from ..qt_compat import QShortcut, QtCore, QtGui, QtWidgets, Qt, repolish
 from ..ui_scale import pt, px, space
-from . import controls, forms
+from . import confetti, controls, forms
 from .badges import CountBadge, Dot, FilterPills, StatusBadge, Tag
 from .cards import Card, CardGrid, demo_picture
 from .charts import BarChart, DonutChart, LineChart, StatTile
 from .colors import ColorButton
 from .combos import GroupedComboBox, IconComboBox, MultiComboBox, RadioCards, editable_combo
-from .gallery import Gallery, open_lightbox
+from .gallery import CompareSlider, Gallery, open_lightbox
 from .dialogs import ConfirmDialog, SettingsDialog, ask, ask_text, how_to_card, inform
 from .inputs import ClearableComboBox, CopyButton, ListEditor, MultiSelectList, PickButton, SearchBox
 from .loading import ProgressRing, Skeleton, Spinner, Steps, busy
@@ -72,6 +72,8 @@ BADGES = (("Added", "log_success"), ("Fixed", "log_warning"), ("Changed", "log_i
           ("Improved", "log_system"))
 # Help texts (controls.help_html): one idea per block, few words; **term** at the start of a block, `code` for names.
 HELP = {
+    "compare": ("Before / After", "**Press or drag** anywhere on the picture to move the divider.\n\n"
+                                  "With the focus, **Left / Right** step it, **Home / End** go to the edges."),
     "dropdowns": ("Dropdowns", "**Icons** help when the items differ in kind.\n\n**Groups**: the headings cannot be "
                                "chosen.\n\n**Editable**: pick or type a new value.\n\n**Check boxes**: the list "
                                "stays open while you tick; the field sums it up."),
@@ -119,6 +121,9 @@ HELP = {
     "feedback": ("Feedback", "**Toasts** tell the outcome of a small action.\n\n"
                              "**The result card** ends a main operation.\n\n"
                              "**The busy overlay** blocks the area while work runs."),
+    "celebrate": ("Celebration", "**Confetti** bursts from the success sign and is gone in 5 s; it takes no clicks "
+                                 "or focus.\n\nOnce per real success: the result card tells the outcome, the confetti "
+                                 "only celebrates it.\n\n`show_message(..., celebrate=True)` bursts from the card."),
 }
 CARDS = (
     ("Interior Lighting", "Soft daylight with warm lamps for living rooms and kitchens.", "sparkles", "accent",
@@ -734,6 +739,13 @@ class MainWindow(ToolWindow):
         self.gallery.preview_requested.connect(self.open_lightbox)
         lay.addWidget(self.gallery)
         page.addWidget(frame)
+        frame, lay = forms.panel("Before / After", theme, *HELP["compare"])
+        render = demo_picture(2)
+        clay = QtGui.QPixmap.fromImage(render.toImage().convertToFormat(QtGui.QImage.Format_Grayscale8))
+        self.compare = CompareSlider(theme, ("Clay", clay), ("Render", render))  # Two versions of one picture
+        self.compare.changed.connect(lambda share: self.set_status("Divider at {:.0%}.".format(share)))
+        lay.addWidget(self.compare)
+        page.addWidget(frame)
 
     def open_lightbox(self, index):
         """The gallery's pictures over the whole content of the window (gallery.Lightbox)."""
@@ -825,12 +837,25 @@ class MainWindow(ToolWindow):
             self._button("Error", "x", lambda: self.result_card.show_message(
                 "error", "Conversion failed", "The scene is read-only. Nothing was changed."))))
         right.addWidget(frame)
+        frame, lay = forms.panel("Celebration", theme, *HELP["celebrate"])
+        lay.addWidget(controls.muted("Confetti from the success sign, for a rare, real milestone: a package installed, "
+                                     "the first export. Never for routine results."))
+        self.burst_button = self._button("Burst From Here", "star", lambda: self.celebrate_from(self.burst_button))
+        lay.addLayout(self._row(
+            self._button("Success With Confetti", "sparkles", lambda: self.result_card.show_message(
+                "success", "Package installed", "Bitmap Collector 1.0.0 is ready to use.", celebrate=True)),
+            self.burst_button))
+        right.addWidget(frame)
         frame, lay = forms.panel("Empty states", theme)
         lay.addWidget(EmptyState(theme, "cloud-off", "You are offline", "The catalog loads when the connection is "
                                  "back.", ("Retry", "refresh-cw", lambda: self.notify("Still offline.", "warning")),
                                  role="log_warning"))
         right.addWidget(frame)
         right.addStretch(1)
+
+    def celebrate_from(self, widget):
+        """The burst alone, from the middle of `widget` (a real tool bursts from its success sign)."""
+        self.confetti = confetti.burst(self, self.theme, widget.mapToGlobal(widget.rect().center()))
 
     def start_busy(self, fail=False):
         self.busy.start("Converting the scene" if not fail else "Exporting", "This usually takes a few seconds.")
